@@ -1,8 +1,12 @@
 ﻿@page "/lessons"
 @rendermode InteractiveServer
 @inject DialogService DialogService
+@inject ILessonService lessonService
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.IdentityModel.Tokens
+@using RepositoryLibrary.IServices
+@using RepositoryLibrary.Models
 @attribute [Authorize]
 
 
@@ -33,20 +37,31 @@
         </RadzenCard>
     </div>
 </div>
+@if(!lessons.IsNullOrEmpty()){
+foreach(var lesson in lessons)
+{
+    <LessonComponent lesson="lesson" />
+}
+}
+
+
 
 @code {
-    DateOnly? value;
+    DateOnly? value = DateOnly.FromDateTime(DateTime.Now);
 }
 
 @code {
     // Order order;
+    IEnumerable<Lesson> lessons {get; set;}
 
     Variant variant = Variant.Filled;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        lessons = await lessonService.GetAllLessonsAsync();
 
         // order = dbContext.Orders.Include("Customer").Include("Employee").FirstOrDefault();
     }
 }
+    

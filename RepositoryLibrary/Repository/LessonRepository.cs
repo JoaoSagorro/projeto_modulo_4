@@ -16,7 +16,12 @@ namespace RepositoryLibrary.Repository
 
         public async Task<IEnumerable<Lesson>> GetAllLessonsAsync()
         {
-            return await _emContext.Lessons.ToListAsync();
+            return await _emContext.Lessons
+            .Include(l => l.LessonType)
+            .Include(l => l.Bookings)
+            .Include(l => l.LessonHorses).ThenInclude(lh => lh.Horse)
+            .Include(l => l.School)
+            .ToListAsync();
         }
 
         public async Task<Lesson?> GetLessonByIdAsync(int lessonId)
