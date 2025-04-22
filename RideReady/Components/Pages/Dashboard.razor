@@ -1,0 +1,26 @@
+﻿@page "/dashboard"
+@using RideReady.Components.Dashboard
+@using SharedLibrary.Models.Static_Class
+
+<PageTitle>Dashboard</PageTitle>
+
+@* Simulate a logged-in user role (for now, hardcoded) *@
+@code {
+    private string currentUserRole = StaticRole.Teacher; // Change for testing: Admin / Teacher / Student
+}
+
+@switch (currentUserRole)
+{
+    case StaticRole.Admin:
+        <AdminDashboard />
+        break;
+    case StaticRole.Teacher:
+        <TeacherDashboard />
+        break;
+    case StaticRole.Student:
+        <StudentDashboard />
+        break;
+    default:
+        <p>Role not recognized</p>
+        break;
+}

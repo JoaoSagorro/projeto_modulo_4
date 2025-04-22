@@ -1,0 +1,77 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+
+<RadzenComponents @rendermode="InteractiveServer" />
+<div class="page">
+
+    <main>
+        <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'" >
+            
+                  
+            <RadzenHeader class="d-flex justify-content-between align-items-center">
+                <div class="d-flex">
+                    <NavMenu />
+
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                        <NavLink href="/">
+                            <img Src="/Images/Logo.png" Alt="placeholder" class="rounded ms-1 my-1" style="width: 50px; height: 50px;"/>
+                        </NavLink>
+                    </RadzenStack>
+
+                </div>
+
+                    <AuthorizeView>
+                        <Authorized>
+                            <RadzenProfileMenu class="me-3">
+                                <Template>
+                                    <RadzenGravatar Email="info@radzen.com">
+                                    </RadzenGravatar>
+                                    <RadzenLabel Text="John Doe" Style="font-size: 1.2rem;" class="mx-2" />
+                                </Template>
+                                <ChildContent>
+                                    <RadzenProfileMenuItem Text="Profile" Path="profile" Icon="account_circle" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
+                                    <RadzenProfileMenuItem Text="Logout" Path="notification" Icon="exit_to_app" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
+                                </ChildContent>
+                            </RadzenProfileMenu>
+                        </Authorized>
+
+                        <NotAuthorized>
+                            <div class="border border-black d-flex align-items-center me-3">
+                                <NavLink class="nav-link" href="Account/Login">
+                                    <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                                </NavLink>
+                                <NavLink class="nav-link" href="Account/Register">
+                                    <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                </NavLink>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
+
+                
+                
+            </RadzenHeader>
+
+
+            
+            <RadzenBody>
+                <div class="rz-p-4">
+                    @Body
+                </div>
+            </RadzenBody>
+            @if (sidebarExpanded)
+            {
+                <div @onclick="@(() => sidebarExpanded = false)" class="rz-dialog-mask" style="position: absolute; z-index: 2"></div>
+            }
+        </RadzenLayout>
+    </main>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    bool sidebarExpanded = false;
+}
