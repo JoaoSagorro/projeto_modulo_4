@@ -1,8 +1,8 @@
-﻿@page "/dashboard"
-@using RideReady.Components.Dashboard
+﻿@page "/horses"
+@using RideReady.Components.Horses
 @using SharedLibrary.Models.Static_Class
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>Horses</PageTitle>
 
 @* Simulate a logged-in user role (for now, hardcoded) *@
 @code {
@@ -12,13 +12,10 @@
 @switch (currentUserRole)
 {
     case StaticRole.Admin:
-        <AdminDashboard />
+        <AdminHorses />
         break;
     case StaticRole.Teacher:
-        <TeacherDashboard />
-        break;
-    case StaticRole.Student:
-        <StudentDashboard />
+        <TeacherHorses />
         break;
     default:
         <p>Role not recognized</p>
