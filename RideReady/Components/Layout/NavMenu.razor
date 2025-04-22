@@ -1,7 +1,8 @@
-﻿@inject NavigationManager NavigationManager
+﻿@using Microsoft.AspNetCore.Identity
+@inject NavigationManager NavigationManager
 @rendermode InteractiveServer
 
-    
+
 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" class="ms-3">
     <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" />
 </RadzenStack>
