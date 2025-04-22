@@ -10,10 +10,10 @@ namespace RepositoryLibrary.Services;
 public class BookingService : IBookingService
 {
     private readonly IBookingRepository _bookingRepo;
-    private readonly UserService _userService;
+    private readonly IUserService _userService;
     private readonly IPaymentRepository _paymentRepo;
-    private readonly LessonService _lessonService;
-    public BookingService(EM_DbContext _context, UserService userService, LessonService lessonService)
+    private readonly ILessonService _lessonService;
+    public BookingService(EM_DbContext _context, IUserService userService, ILessonService lessonService)
     {
         _bookingRepo = new BookingRepository(_context);
         _paymentRepo = new PaymentRepository(_context);
