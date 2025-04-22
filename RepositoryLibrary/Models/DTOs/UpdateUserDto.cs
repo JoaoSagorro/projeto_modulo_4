@@ -15,7 +15,7 @@
         public DateTime Birthdate { get; set; }
         public bool IsActive { get; set; }
         public int TaxIdentificationNumber { get; set; }
-        public int SocialHealthNumber { get; set; }
+        public long SocialHealthNumber { get; set; }
         public int CitizenNumber { get; set; }
         public IList<string> Roles { get; set; }
         public Photo? Photo { get; set; }
