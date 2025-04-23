@@ -1,13 +1,15 @@
-﻿@inherits LayoutComponentBase
+﻿@using Microsoft.AspNetCore.Identity
+@inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
+@inject SignInManager<EMUser> Manager
 
 <RadzenComponents @rendermode="InteractiveServer" />
 <div class="page">
 
     <main>
         <RadzenLayout style="position: relative;grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body'" >
-            
-                  
+
+
             <RadzenHeader class="d-flex justify-content-between align-items-center">
                 <div class="d-flex">
                     <NavMenu />
@@ -20,39 +22,36 @@
 
                 </div>
 
-                    <AuthorizeView>
-                        <Authorized>
-                            <RadzenProfileMenu class="me-3">
-                                <Template>
-                                    <RadzenGravatar Email="info@radzen.com">
-                                    </RadzenGravatar>
-                                    <RadzenLabel Text="John Doe" Style="font-size: 1.2rem;" class="mx-2" />
-                                </Template>
-                                <ChildContent>
-                                    <RadzenProfileMenuItem Text="Profile" Path="profile" Icon="account_circle" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
-                                    <RadzenProfileMenuItem Text="Logout" Path="notification" Icon="exit_to_app" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
-                                </ChildContent>
-                            </RadzenProfileMenu>
-                        </Authorized>
+                <AuthorizeView>
+                    <Authorized>
+                        <RadzenProfileMenu class="me-3">
+                            <Template>
+                                <RadzenGravatar Email="info@radzen.com">
+                                </RadzenGravatar>
+                                <RadzenLabel Text="John Doe" Style="font-size: 1.2rem;" class="mx-2" />
+                            </Template>
+                            <ChildContent>
+                                <RadzenProfileMenuItem Text="Profile" Path="profile" Icon="account_circle" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
+                                <RadzenProfileMenuItem Path="notification" Text="Logout" Icon="exit_to_app" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
+                            </ChildContent>
+                        </RadzenProfileMenu>
+                    </Authorized>
 
-                        <NotAuthorized>
-                            <div class="border border-black d-flex align-items-center me-3">
-                                <NavLink class="nav-link" href="Account/Login">
-                                    <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                                </NavLink>
-                                <NavLink class="nav-link" href="Account/Register">
-                                    <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                                </NavLink>
-                            </div>
-                        </NotAuthorized>
-                    </AuthorizeView>
-
-                
-                
+                    <NotAuthorized>
+                        <div class="border border-black d-flex align-items-center me-3">
+                            <NavLink class="nav-link" href="Account/Login">
+                                <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                            </NavLink>
+                            <NavLink class="nav-link" href="Account/Register">
+                                <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                            </NavLink>
+                        </div>
+                    </NotAuthorized>
+                </AuthorizeView>
             </RadzenHeader>
 
 
-            
+
             <RadzenBody>
                 <div class="rz-p-4">
                     @Body

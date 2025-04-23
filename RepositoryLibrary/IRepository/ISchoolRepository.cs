@@ -4,6 +4,7 @@ namespace RepositoryLibrary.IRepository
 {
     public interface ISchoolRepository
     {
+        public Task CreateUserSchoolAsync(string userId, int schoolId);
         public Task<Logo> AddSchoolLogoAsync(int schoolId, string logoName, string filepath);
         public Task<Logo> UpdateSchoolLogoAsync(Logo logoToChange, string filepath);
         public Task<Logo> DeleteSchoolLogoAsync(int schoolId, string logoName);
