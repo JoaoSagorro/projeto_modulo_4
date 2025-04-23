@@ -74,7 +74,15 @@
 </style> *@
 @if(userRole == "Administrator")
 {
-    <LessonListAdmin lessons="@lessons" />
+    <LessonListAdmin />
+}
+else if(userRole == "Teacher")
+{
+    <LessonListTeacher />
+}
+else
+{
+    <LessonList />
 }
 
 @* @if(!lessons.IsNullOrEmpty()){
@@ -103,7 +111,7 @@ foreach(var lesson in lessons)
         var authState = await authenticationStateTask;
         var user = authState.User;
         userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
-        lessons = await lessonService.GetAllLessonsAsync();
+        @* lessons = await lessonService.GetAllLessonsAsync(); *@
         Claims = user.Claims.ToList();
         // order = dbContext.Orders.Include("Customer").Include("Employee").FirstOrDefault();
     }
@@ -117,9 +125,9 @@ foreach(var lesson in lessons)
 
         if(userId is not null)
         await bookingService.CreateBookingAsync(userId, LessonId);
-        test = LessonId.ToString();
+        @* test = LessonId.ToString(); *@
         StateHasChanged();
-        userIdTest = userId;
+        @* userIdTest = userId; *@
         
     }
 }

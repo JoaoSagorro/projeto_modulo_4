@@ -141,6 +141,8 @@ public class BookingService : IBookingService
         var schools = await _schoolService.GetUserSchoolsAsync(userId);
         var bookedClasses = await _bookingRepo.GetBookingsByUserIdAsync(userId);
         var lessonToBook = await _lessonService.GetLessonByIdAsync(lessonId);
+        var bookingsByLesson = await _bookingRepo.GetBookingsByLessonId(lessonId);
+        if (bookingsByLesson.Count == lessonToBook.MaxSpots) throw new Exception("All spots filled");
         if (!schools.Contains(lessonToBook.School)) throw new Exception("Cannot book to this school");
         var lessonType = lessonToBook.LessonType.Name;
         var boughtType = await _paymentRepo.LessonTypeBought(userId);
