@@ -5,6 +5,8 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using RepositoryLibrary.Models
+@using RepositoryLibrary.Services
 @using RideReady.Data
 @using SharedLibrary.Models.Static_Class
 
@@ -15,6 +17,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject SchoolService _schoolService
 
 <PageTitle>Register</PageTitle>
 
@@ -100,6 +103,16 @@
                     </div>
                 </div>
 
+                <div class="form mb-3">
+                    <InputSelect @bind-Value="SchoolId" class="form-check-input" autocomplete="informationauthorized" aria-required="true" placeholder="Information Authorized" />
+                    <label class="form-check-label" for="informationauthorized">Select School</label>
+                    @foreach(var school in Schools) 
+                    {
+                        <option value="@school.SchoolId">@school.SchoolName</option>
+                    }
+                    <ValidationMessage For="() => Input.InformationAuthorized" class="text-danger" />
+                </div>
+
                 <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
             </EditForm>
         </RadzenCard>
@@ -117,6 +130,15 @@
     private string? ReturnUrl { get; set; }
 
     private string? Message => identityErrors is null ? null : $"Error: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    private List<School> Schools { get; set; }
+
+    private int SchoolId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Schools = await _schoolService.GetSchoolsAsync();
+    }
 
     public async Task RegisterUser(EditContext editContext)
     {
@@ -144,6 +166,8 @@
         }
 
         var roleResult = await UserManager.AddToRoleAsync(user, StaticRole.Student);
+
+        await _schoolService.CreateUserSchoolAsync(user.Id, SchoolId);
 
         Logger.LogInformation("User created a new account with password.");
 

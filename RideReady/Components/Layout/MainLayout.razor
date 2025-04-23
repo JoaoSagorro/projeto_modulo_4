@@ -32,7 +32,7 @@
                             </Template>
                             <ChildContent>
                                 <RadzenProfileMenuItem Text="Profile" Path="profile" Icon="account_circle" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
-                                <RadzenProfileMenuItem onclick="@LogoutUser()" Text="Logout" Path="notification" Icon="exit_to_app" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
+                                <RadzenProfileMenuItem Path="notification" Text="Logout" Icon="exit_to_app" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
                             </ChildContent>
                         </RadzenProfileMenu>
                     </Authorized>
@@ -48,9 +48,6 @@
                         </div>
                     </NotAuthorized>
                 </AuthorizeView>
-
-
-
             </RadzenHeader>
 
 
@@ -76,9 +73,4 @@
 
 @code {
     bool sidebarExpanded = false;
-
-    private async Task LogoutUser()
-    {
-        await Manager.SignOutAsync();
-    }
 }

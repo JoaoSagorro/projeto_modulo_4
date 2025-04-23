@@ -14,9 +14,8 @@ namespace RepositoryLibrary.Repository
     {
         private readonly EM_DbContext _emContext;
         private readonly UserManager<EMUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public UserRepository(EM_DbContext emContext, UserManager<EMUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UserRepository(EM_DbContext emContext, UserManager<EMUser> userManager)
         {
             _emContext = emContext;
             _userManager = userManager;
