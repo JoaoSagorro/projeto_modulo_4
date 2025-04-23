@@ -1,0 +1,23 @@
+﻿@page "/horses"
+@using RideReady.Components.Horses
+@using SharedLibrary.Models.Static_Class
+
+<PageTitle>Horses</PageTitle>
+
+@* Simulate a logged-in user role (for now, hardcoded) *@
+@code {
+    private string currentUserRole = StaticRole.Teacher; // Change for testing: Admin / Teacher / Student
+}
+
+@switch (currentUserRole)
+{
+    case StaticRole.Admin:
+        <AdminHorses />
+        break;
+    case StaticRole.Teacher:
+        <TeacherHorses />
+        break;
+    default:
+        <p>Role not recognized</p>
+        break;
+}

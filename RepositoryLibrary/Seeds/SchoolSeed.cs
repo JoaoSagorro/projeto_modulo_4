@@ -44,7 +44,7 @@ public static class SchoolSeed
                 var userManager = serviceProvider.GetRequiredService<UserManager<EMUser>>();
                 var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var _env = serviceProvider.GetRequiredService<IWebHostEnvironment>();
-                var imageService = new ImageService(em_context, userManager, roleManager);
+                var imageService = new ImageService(em_context, userManager);
                 var school = await em_context.Schools.FirstOrDefaultAsync(s => s.SchoolName == "Centro Equestre do Tejo") ?? throw new Exception("Couldn't find seeded school.");
                 string absolutePath = Path.Combine(_env.WebRootPath, "Logos", "logo1.jpg");
                 await imageService.AddSchoolLogoAsync(school.SchoolId, "logo", absolutePath);

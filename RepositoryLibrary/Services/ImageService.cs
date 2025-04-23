@@ -11,9 +11,9 @@ namespace RepositoryLibrary.Services
     {
         private readonly UserRepository _userRepository;
         private readonly SchoolRepository _schoolRepository;
-        public ImageService(EM_DbContext emContext, UserManager<EMUser> userManager, RoleManager<IdentityRole> roleManager)
+        public ImageService(EM_DbContext emContext, UserManager<EMUser> userManager)
         {
-            _userRepository = new UserRepository(emContext, userManager, roleManager);
+            _userRepository = new UserRepository(emContext, userManager);
             _schoolRepository = new SchoolRepository(emContext);
         }
 
