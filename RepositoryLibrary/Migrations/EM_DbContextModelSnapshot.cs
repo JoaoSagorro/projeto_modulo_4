@@ -35,7 +35,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasKey("LessonId", "UserId");
 
-                    b.ToTable("Bookings");
+                    b.ToTable("Bookings", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Horse", b =>
@@ -64,7 +64,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Horses");
+                    b.ToTable("Horses", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Lesson", b =>
@@ -96,7 +96,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Lessons");
+                    b.ToTable("Lessons", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.LessonHorse", b =>
@@ -111,7 +111,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("HorseId");
 
-                    b.ToTable("LessonHorses");
+                    b.ToTable("LessonHorses", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.LessonProf", b =>
@@ -124,7 +124,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasKey("LessonId", "UserId");
 
-                    b.ToTable("LessonProfs");
+                    b.ToTable("LessonProfs", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.LessonType", b =>
@@ -144,7 +144,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasKey("LessonTypeId");
 
-                    b.ToTable("LessonTypes");
+                    b.ToTable("LessonTypes", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Logo", b =>
@@ -164,7 +164,7 @@ namespace RepositoryLibrary.Migrations
                     b.HasIndex("SchoolId")
                         .IsUnique();
 
-                    b.ToTable("Logos");
+                    b.ToTable("Logos", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Package", b =>
@@ -195,7 +195,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("LessonTypeId");
 
-                    b.ToTable("Packages");
+                    b.ToTable("Packages", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Photo", b =>
@@ -209,7 +209,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("Photos");
+                    b.ToTable("Photos", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.School", b =>
@@ -247,7 +247,7 @@ namespace RepositoryLibrary.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Schools");
+                    b.ToTable("Schools", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.SchoolUser", b =>
@@ -260,7 +260,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasKey("SchoolId", "UserId");
 
-                    b.ToTable("SchoolUsers");
+                    b.ToTable("SchoolUsers", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.UserHorse", b =>
@@ -279,7 +279,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("HorseId");
 
-                    b.ToTable("UserHorses");
+                    b.ToTable("UserHorses", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.UserPayment", b =>
@@ -303,7 +303,7 @@ namespace RepositoryLibrary.Migrations
 
                     b.HasIndex("PackageId");
 
-                    b.ToTable("UserPayments");
+                    b.ToTable("UserPayments", (string)null);
                 });
 
             modelBuilder.Entity("RepositoryLibrary.Models.Views.Users_View", b =>
