@@ -53,13 +53,15 @@
     </RadzenColumn>
 
     <RadzenColumn Width="50%">
-        <RadzenCard Style="border-radius: 8px; width: 100%; height: 100%;">
-            <RadzenStack Gap="0.5rem" class="rz-p-4">
-                <RadzenText Text="Cavalos Disponíveis" TextStyle="TextStyle.H6" />
-                <RadzenText Text="@totalHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
-                <RadzenText Text="Cavalos livres para aulas" TextStyle="TextStyle.Caption" class="text-muted" />
-            </RadzenStack>
-        </RadzenCard>
+        <RadzenLink Path="/horses" Style="text-decoration: none;">
+            <RadzenCard Style="border-radius: 8px; width: 100%; height: 100%;">
+                <RadzenStack Gap="0.5rem" class="rz-p-4">
+                    <RadzenText Text="Cavalos Disponíveis" TextStyle="TextStyle.H6" />
+                    <RadzenText Text="@totalHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
+                    <RadzenText Text="Cavalos livres para aulas" TextStyle="TextStyle.Caption" class="text-muted" />
+                </RadzenStack>
+            </RadzenCard>
+        </RadzenLink>
     </RadzenColumn>
 
     <RadzenColumn Width="50%">

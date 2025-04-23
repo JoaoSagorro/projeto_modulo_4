@@ -2,7 +2,7 @@ using System;
 using RepositoryLibrary.Models;
 using RepositoryLibrary.Models.DTOs;
 
-namespace RepositoryLibrary.Services;
+namespace RepositoryLibrary.IServices;
 
 public interface IHorseService
 {
