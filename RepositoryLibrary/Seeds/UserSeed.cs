@@ -41,7 +41,7 @@ namespace EquestrianManagement.Seeds
 
                 var adminResult = await _userManager.CreateAsync(superAdmin, "@SuperAdmin1");
 
-                if(!adminResult.Succeeded)
+                if (!adminResult.Succeeded)
                 {
                     throw new Exception($"There was an error creating {superAdmin.UserName}.");
                 }
@@ -214,19 +214,19 @@ namespace EquestrianManagement.Seeds
                     foreach (EMUser user in users)
                     {
                         var result = false;
-                        if (user.UserName == "SuperAdmin")
+                        if (user.UserName == "admin@admin.pt")
                         {
                             var adminResult = await _userManager.AddToRoleAsync(user, StaticRole.Admin);
                             result = adminResult.Succeeded;
                         }
 
-                        if (user.UserName == "joaosilva")
+                        if (user.UserName == "joao.silva@email.pt")
                         {
                             var teacherResult = await _userManager.AddToRoleAsync(user, StaticRole.Teacher);
                             result = teacherResult.Succeeded;
                         }
 
-                        if (user.UserName != "joaosilva" && user.UserName != "SuperAdmin")
+                        if (user.UserName != "joao.silva@email.pt" && user.UserName != "admin@admin.pt")
                         {
                             var studentResult = await _userManager.AddToRoleAsync(user, StaticRole.Student);
                             result = studentResult.Succeeded;
