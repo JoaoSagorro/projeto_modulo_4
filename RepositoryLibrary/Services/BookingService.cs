@@ -60,11 +60,11 @@ public class BookingService : IBookingService
             await CanProceed(userId, lessonId);
             //checks if it is weekly package and if can still book for the week if
             //if not weekly check if it has amount
-            var package = await CanBook(userId, lessonId);
+            // var package = await CanBook(userId, lessonId);
             var booking = new Booking { UserId = userId, LessonId = lessonId };
             booking = await _bookingRepo.CreateBookingAsync(booking);
             //if it's not a weekly package it uses in the lessons amount
-            if (!package.weekly) await _paymentRepo.useClass(userId);
+            // if (!package.weekly) await _paymentRepo.useClass(userId);
             return booking;
 
         }
@@ -140,7 +140,9 @@ public class BookingService : IBookingService
 
         var bookedClasses = await _bookingRepo.GetBookingsByUserIdAsync(userId);
         var lessonToBook = await _lessonService.GetLessonByIdAsync(lessonId);
-
+        var lessonType = lessonToBook.LessonType.Name;
+        var boughtType = await _paymentRepo.LessonTypeBought(userId);
+        if (lessonType != boughtType) throw new Exception("Different type than classes bought");
         var bookedAmount = bookedClasses.Count(b => IsSameWeek(b.Lesson.BeginOfLesson, lessonToBook.BeginOfLesson));
 
         if (bookedAmount >= isWeekly.amount)

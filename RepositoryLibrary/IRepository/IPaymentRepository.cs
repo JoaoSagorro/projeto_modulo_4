@@ -11,6 +11,7 @@ namespace RepositoryLibrary.IRepository
         Task<UserPayment> DeletePayment(UserPayment payment);
         Task<UserPayment> EditPayment(UserPayment payment);
         Task<(bool weekly, int? amount)> IsWeekly(string userId);
+        Task<string> LessonTypeBought(string userId);
         Task useClass(string userId);
     }
 }
