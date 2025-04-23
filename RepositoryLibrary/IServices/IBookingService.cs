@@ -14,5 +14,6 @@ public interface IBookingService
     public Task<Booking> CreateBookingAsync(string userId, int lessonId);
     public Task<Booking> CancelBookingAsync(string userId, int lessonId);
     public Task<Booking> ChangeBookingPresenceAsync(string userId, int lessonId);
+    Task<(bool weekly, int? amount)> CanBook(string userId, int lessonId);
 
 }

@@ -1,5 +1,4 @@
-﻿@page "/lessons"
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 @inject DialogService DialogService
 @inject ILessonService lessonService
 @inject IBookingService bookingService
@@ -10,11 +9,11 @@
 @using RepositoryLibrary.IServices
 @using RepositoryLibrary.Models
 @using System.Security.Claims
-@attribute [Authorize]
 
+@code {
 
-
-@* <div class="border border-1">
+}
+<div class="border border-1">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
         <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
@@ -52,9 +51,18 @@
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenColumn>
+                @if (bookingAvailability.ContainsKey(lesson.LessonId) && bookingAvailability[lesson.LessonId])
+                {
                     <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
                         <RadzenButton Text="Book" Click=@(args => BookLesson(lesson.LessonId)) Style="width: 100%" />
                     </RadzenColumn>
+                }
+                else
+                {
+                    <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
+                        <RadzenButton Text="Book" Click=@(args => BookLesson(lesson.LessonId)) Style="width: 100%" Disabled=true />
+                    </RadzenColumn>
+                }
                 </RadzenRow>
             </RadzenCard>
         </Template>
@@ -71,41 +79,40 @@
     line-height: 20px;
     padding: 8px;
 }
-</style> *@
-@if(userRole == "Administrator")
-{
-    <LessonListAdmin lessons="@lessons" />
-}
-
-@* @if(!lessons.IsNullOrEmpty()){
-foreach(var lesson in lessons)
-{
-    <LessonComponent lesson="lesson" />
-}
-} *@
-
+</style>
 
 
 @code {
-     DateOnly? value = DateOnly.FromDateTime(DateTime.Now);
-    IEnumerable<Lesson> lessons {get; set;}
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
-    private string userRole {get;set;}
-    string? test {get; set;} = null;
-    List<Claim> Claims {get;set;}
-    string? userIdTest {get; set;} = null;
-    Variant variant = Variant.Filled;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
+    [Parameter]
+    public IEnumerable<Lesson> lessons {get; set;} = [];
+    public DateOnly value {get; set;}
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    List<Claim> Claims {get;set;}
+    Variant variant = Variant.Filled;
+    private string userId {get; set;}
+    private Dictionary<int, bool> bookingAvailability = new();
+
+    protected override async Task OnInitializedAsync(){
         authenticationStateTask = AuthStateProvider.GetAuthenticationStateAsync();
+        await base.OnInitializedAsync();
         var authState = await authenticationStateTask;
         var user = authState.User;
-        userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
-        lessons = await lessonService.GetAllLessonsAsync();
-        Claims = user.Claims.ToList();
-        // order = dbContext.Orders.Include("Customer").Include("Employee").FirstOrDefault();
+        userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        foreach(var lesson in lessons)
+        {
+            try
+            {
+            await bookingService.CanBook(userId, lesson.LessonId);
+            bookingAvailability[lesson.LessonId] =  true;
+            }
+            catch
+            {
+            bookingAvailability[lesson.LessonId] =  false;
+            }
+            
+        }
     }
 
     private async Task BookLesson(int LessonId)
@@ -113,14 +120,18 @@ foreach(var lesson in lessons)
         @* var userId = httpContext.User.Claims.FirstOrDefault(u=> u.Type == ClaimTypes.NameIdentifier).Value; *@
         var authState = await authenticationStateTask;
         var user = authState.User;
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         if(userId is not null)
         await bookingService.CreateBookingAsync(userId, LessonId);
-        test = LessonId.ToString();
         StateHasChanged();
-        userIdTest = userId;
         
     }
+
+    private async Task<bool> CanBookLesson(string userId, int lessonId)
+    {
+        _ = await bookingService.CanBook(userId,lessonId);
+        return true;
+    }
 }
-    
+

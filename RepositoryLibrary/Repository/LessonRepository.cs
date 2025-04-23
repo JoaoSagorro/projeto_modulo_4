@@ -19,6 +19,7 @@ namespace RepositoryLibrary.Repository
             return await _emContext.Lessons
             .Include(l => l.LessonType)
             .Include(l => l.Bookings)
+            .Include(l => l.LessonProfs)
             .Include(l => l.LessonHorses).ThenInclude(lh => lh.Horse)
             .Include(l => l.School)
             .ToListAsync();

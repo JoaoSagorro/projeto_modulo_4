@@ -1,5 +1,4 @@
-﻿@page "/lessons"
-@rendermode InteractiveServer
+﻿@rendermode InteractiveServer
 @inject DialogService DialogService
 @inject ILessonService lessonService
 @inject IBookingService bookingService
@@ -9,16 +8,17 @@
 @using Microsoft.IdentityModel.Tokens
 @using RepositoryLibrary.IServices
 @using RepositoryLibrary.Models
+@inject NavigationManager NavigationManager
 @using System.Security.Claims
-@attribute [Authorize]
 
-
-
-@* <div class="border border-1">
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
+<div class="border border-1">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
         <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
-    </RadzenStack>
+        </RadzenStack>
+        <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" />
+</RadzenStack>
 
 <RadzenDataList 
                      AllowPaging="true"
@@ -26,7 +26,7 @@
         <Template Context="lesson">
             <RadzenCard Variant="Variant.Outlined" class="rz-p-0" Style="width: 100%; overflow: hidden;">
                 <RadzenRow Gap="0">
-                    <RadzenColumn Size="12" SizeLG="3" class="rz-p-4 product-title">
+                    <RadzenColumn Size="12" SizeLG="2" class="rz-p-4 product-title">
                         <RadzenText TextStyle="TextStyle.H6" TagName="TagName.H5" class="rz-color-on-secondary-lighter">@(lesson.School.SchoolName)</RadzenText>
                     </RadzenColumn>
                     <RadzenColumn Size="12" SizeLG="7" class="rz-p-4">
@@ -52,8 +52,11 @@
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenColumn>
-                    <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
-                        <RadzenButton Text="Book" Click=@(args => BookLesson(lesson.LessonId)) Style="width: 100%" />
+                    <RadzenColumn Size="2" SizeLG="1" class="rz-p-4">
+                        <RadzenButton Text="Delete" Click=@(args => DeleteLesson(lesson.LessonId)) Style="width: 100%" />
+                    </RadzenColumn>
+                    <RadzenColumn Size="2" SizeLG="1" class="rz-p-4">
+                        <RadzenButton Text="Edit" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 100%" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
@@ -71,24 +74,13 @@
     line-height: 20px;
     padding: 8px;
 }
-</style> *@
-@if(userRole == "Administrator")
-{
-    <LessonListAdmin lessons="@lessons" />
-}
-
-@* @if(!lessons.IsNullOrEmpty()){
-foreach(var lesson in lessons)
-{
-    <LessonComponent lesson="lesson" />
-}
-} *@
-
-
+</style>
 
 @code {
-     DateOnly? value = DateOnly.FromDateTime(DateTime.Now);
-    IEnumerable<Lesson> lessons {get; set;}
+
+    [Parameter]
+    public IEnumerable<Lesson> lessons {get; set;} = [];
+    public DateOnly value {get; set;}
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     private string userRole {get;set;}
     string? test {get; set;} = null;
@@ -96,31 +88,14 @@ foreach(var lesson in lessons)
     string? userIdTest {get; set;} = null;
     Variant variant = Variant.Filled;
 
-    protected override async Task OnInitializedAsync()
-    {
+    protected override async Task OnInitializedAsync(){
         await base.OnInitializedAsync();
-        authenticationStateTask = AuthStateProvider.GetAuthenticationStateAsync();
-        var authState = await authenticationStateTask;
-        var user = authState.User;
-        userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
-        lessons = await lessonService.GetAllLessonsAsync();
-        Claims = user.Claims.ToList();
-        // order = dbContext.Orders.Include("Customer").Include("Employee").FirstOrDefault();
     }
 
-    private async Task BookLesson(int LessonId)
+    private async Task DeleteLesson(int LessonId)
     {
         @* var userId = httpContext.User.Claims.FirstOrDefault(u=> u.Type == ClaimTypes.NameIdentifier).Value; *@
-        var authState = await authenticationStateTask;
-        var user = authState.User;
-        var userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
-
-        if(userId is not null)
-        await bookingService.CreateBookingAsync(userId, LessonId);
-        test = LessonId.ToString();
+        await lessonService.DeleteLessonAsync(LessonId);
         StateHasChanged();
-        userIdTest = userId;
-        
     }
 }
-    
