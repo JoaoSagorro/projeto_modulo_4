@@ -49,6 +49,8 @@ namespace RepositoryLibrary.Repository
                         Id = user.Id,
                         Email = user.Email,
                         Name = user.UserName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
                         Address = user.Address,
                         PhoneNumber = user.PhoneNumber,
                         Birthdate = user.Birthdate,
@@ -107,7 +109,7 @@ namespace RepositoryLibrary.Repository
             catch (Exception e)
             {
                 throw new Exception(e.Message, e.InnerException);
-            } 
+            }
         }
 
         public async Task<List<UpdateUserDto>> GetUsersByRole(string role)
@@ -132,6 +134,8 @@ namespace RepositoryLibrary.Repository
                         Id = user.Id,
                         Email = user.Email,
                         Name = user.UserName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
                         Address = user.Address,
                         PhoneNumber = user.PhoneNumber,
                         Birthdate = user.Birthdate,
@@ -191,7 +195,7 @@ namespace RepositoryLibrary.Repository
                 throw new Exception(e.Message, e.InnerException);
             }
         }
-        
+
         public async Task<UpdateUserDto> GetEditUserAsync(string id)
         {
             try
@@ -214,6 +218,8 @@ namespace RepositoryLibrary.Repository
                     Id = user.Id,
                     Email = user.Email,
                     Name = user.UserName,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
                     Address = user.Address,
                     Birthdate = user.Birthdate,
                     PhoneNumber = user.PhoneNumber,
@@ -253,6 +259,8 @@ namespace RepositoryLibrary.Repository
 
                 userToUpdate.Email = user.Email;
                 userToUpdate.UserName = user.Name;
+                userToUpdate.FirstName = user.FirstName;
+                userToUpdate.LastName = user.LastName;
                 userToUpdate.Address = user.Address;
                 userToUpdate.Birthdate = user.Birthdate;
                 userToUpdate.PhoneNumber = user.PhoneNumber;
@@ -261,13 +269,15 @@ namespace RepositoryLibrary.Repository
                 userToUpdate.SocialHealthNumber = user.SocialHealthNumber;
                 userToUpdate.CitizenNumber = user.CitizenNumber;
                 photoToUpdate = user.Photo;
-                
+
 
                 var updatedUser = new UpdateUserDto
                 {
                     Id = userToUpdate.Id,
                     Email = userToUpdate.Email,
                     Name = userToUpdate.UserName,
+                    FirstName = userToUpdate.FirstName,
+                    LastName = userToUpdate.LastName,
                     Address = userToUpdate.Address,
                     Birthdate = userToUpdate.Birthdate,
                     PhoneNumber = userToUpdate.PhoneNumber,
@@ -290,7 +300,7 @@ namespace RepositoryLibrary.Repository
         private async Task<IList<string>> ChangeUserRole(UpdateUserDto userToUpdate, string? oldRole, string newRole)
         {
             var user = await _userManager.FindByIdAsync(userToUpdate.Id);
-            
+
             if (!oldRole.IsNullOrEmpty())
             {
                 var roleResult = await _userManager.RemoveFromRoleAsync(user, oldRole);
