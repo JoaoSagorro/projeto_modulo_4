@@ -5,6 +5,7 @@
 @using System.Text.Encodings.Web
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using RepositoryLibrary.IServices
 @using RepositoryLibrary.Models
 @using RepositoryLibrary.Services
 @using RideReady.Data
@@ -17,7 +18,7 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
-@inject SchoolService _schoolService
+@inject ISchoolService _schoolService
 
 <PageTitle>Register</PageTitle>
 
