@@ -16,6 +16,39 @@ namespace RepositoryLibrary.Repository
             _emContext = context;
         }
 
+        public async Task CreateUserSchoolAsync(string userId, int schoolId)
+        {
+            try
+            {
+                var school = await GetSchoolAsync(schoolId);
+
+                if(school is null)
+                {
+                    throw new Exception("Couldn't find the specified school.");
+                }
+
+                //verification to delete, because one user can be in many schools
+                var exists = _emContext.SchoolUsers.Any(sc => sc.UserId == userId);
+                if(exists)
+                {
+                    throw new Exception("The user already exists.");
+                }
+
+                SchoolUser schoolUser = new SchoolUser
+                {
+                    UserId = userId,
+                    SchoolId = schoolId
+                };
+
+                await _emContext.SchoolUsers.AddAsync(schoolUser);
+                await _emContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e.InnerException);
+            }
+        }
+
         public async Task<Logo> AddSchoolLogoAsync(int schoolId, string logoName, string filepath)
         {
             try

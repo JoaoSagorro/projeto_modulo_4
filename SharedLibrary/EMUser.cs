@@ -16,7 +16,7 @@ namespace SharedLibrary
         public bool ImageAuthorized { get; set; }
         public DateTime RegisterDate { get; set; }
         public int TaxIdentificationNumber { get; set; }
-        public int SocialHealthNumber { get; set; }
+        public long SocialHealthNumber { get; set; }
         public int CitizenNumber { get; set; }
         public DateTime Birthdate { get; set; }
         public string Address { get; set; }

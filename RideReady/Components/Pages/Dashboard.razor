@@ -1,6 +1,8 @@
 ﻿@page "/dashboard"
+@using Microsoft.AspNetCore.Authorization
 @using RideReady.Components.Dashboard
 @using SharedLibrary.Models.Static_Class
+@attribute [Authorize]
 
 <PageTitle>Dashboard</PageTitle>
 
