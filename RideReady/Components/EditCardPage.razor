@@ -1,0 +1,132 @@
+﻿@page "/editLesson/{lessonId}"
+@rendermode InteractiveServer
+
+@using Microsoft.EntityFrameworkCore
+@using RepositoryLibrary.IServices
+@using RepositoryLibrary.Models
+@using RepositoryLibrary.Models.DTOs
+@inject ILessonService lessonService
+@inject Radzen.DialogService dialogService
+@inject ILessonTypeService lessonTypeService
+@inject IUserService userService
+
+@if(lesson is null)
+{
+    <p>Loading...</p>
+}
+else{
+
+<RadzenTemplateForm Data="@lesson" Submit="@((Lesson args) => { Submit(args); })">
+<RadzenStack>
+    <RadzenFormField Text="SchoolName" Variant="Variant.Filled">
+      <RadzenTextBox @bind-Value="@lesson.School.SchoolName" />
+    </RadzenFormField>
+    <RadzenFormField Text="Tipo de Aula" Variant="Variant.Filled">
+        <RadzenDropDown  Data="lessonTypes"  TextProperty="Name"  @bind-Value="lesson.LessonType"/>
+    </RadzenFormField>
+    <RadzenFormField Text="Professor" Variant="Variant.Filled">
+        <RadzenDropDown  Data="teachers"  TextProperty="Name"  ValueProperty="Id"
+      @bind-Value="selectedTeacherId"
+      Change="OnTeacherSelected"
+      Placeholder="Select a teacher…"/>
+    </RadzenFormField>
+    <RadzenFormField Text="RadzenDatePicker" Variant="Variant.Filled">
+        <RadzenDatePicker @bind-Value="@lesson.BeginOfLesson" ShowTime="@true" />
+    </RadzenFormField>
+</RadzenStack>
+<RadzenStack>
+          <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large" Icon="save" Text="Save" />
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Cancel"  />
+</RadzenStack>
+</RadzenTemplateForm>
+
+
+@* <RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+    <RadzenRow>
+        <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+            <RadzenText TextStyle="TextStyle.Subtitle1">Contact</RadzenText>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                <RadzenStack Gap="0" class="rz-text-truncate">
+                    <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">Employee</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@lesson.LessonId</b></RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-4 rz-mb-0" Style="color: var(--rz-text-tertiary-color);">Company</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@lesson.LessonType.Name</b></RadzenText>
+                </RadzenStack>
+            </RadzenStack>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeMD="6" class="rz-p-4 rz-border-radius-1" Style="border: var(--rz-grid-cell-border)">
+            <RadzenText TextStyle="TextStyle.Subtitle1">Delivery Information</RadzenText>
+            <RadzenStack Gap="0" class="rz-text-truncate">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">Start</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@lesson.BeginOfLesson.ToString("yyyy-MM-dd HH:mm")</b></RadzenText>
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-mt-2 rz-my-0" Style="color: var(--rz-text-tertiary-color);">End</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-text-truncate"><b>@lesson.EndOfLesson.ToString("HH:mm")</b></RadzenText>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center">
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-m-0">Order @lessonId Details</RadzenText>
+        <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text="Test"/>
+    </RadzenStack>
+     <RadzenDataGrid AllowFiltering="true" AllowPaging="true" AllowSorting="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                Data="@(orderDetails)" ColumnWidth="200px" Density="Density.Compact" AllowAlternatingRows="false">
+        <Columns>
+            <RadzenDataGridColumn Property="@nameof(OrderDetail.Quantity)" Title="Quantity" />
+            <RadzenDataGridColumn Property="Order.OrderDate" Title="Order Date" FormatString="{0:d}" />
+            <RadzenDataGridColumn Property="@nameof(OrderDetail.Discount)" Title="Discount" FormatString="{0:P}" />
+        </Columns>
+    </RadzenDataGrid> 
+    </RadzenStack>
+    <RadzenStack Visible="@ShowClose" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
+    </RadzenStack>
+</RadzenStack> *@
+}
+
+@code {
+    [Parameter] public int lessonId { get; set; }
+    [Parameter] public bool ShowClose { get; set; } = true;
+    Lesson lesson {get; set;} 
+    string selectedTeacherId;
+    private IEnumerable<LessonType> lessonTypes {get; set;} 
+    private IEnumerable<UpdateUserDto> teachers {get; set;} 
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+
+        lesson = await lessonService.GetLessonByIdAsync(lessonId);
+        lessonTypes = await lessonTypeService.GetLessonTypes();
+        teachers = await userService.GetUsersByRole("Teacher");
+        if (lesson.LessonProfs.Any())
+    {
+      selectedTeacherId = lesson.LessonProfs.ToList()[0].UserId;
+    }
+        @* order = dbContext.Orders.Where(o => o.OrderID == OrderID) *@
+                          @* .Include("Customer") *@
+                          @* .Include("Employee").FirstOrDefault(); *@
+
+        @* orderDetails = dbContext.OrderDetails.Where(o => o.OrderID == OrderID).Include("Order").ToList(); *@
+    }
+
+void OnTeacherSelected(object teacherId)
+  {
+    // Always replace the collection with a single entry:
+    lesson.LessonProfs = new List<LessonProf>
+    {
+      new LessonProf {
+        Lesson = lesson,
+        UserId = (string)teacherId
+      }
+    };
+  }
+     async Task Submit(Lesson changedLesson)
+  {
+    changedLesson.EndOfLesson = changedLesson.BeginOfLesson.AddMinutes(changedLesson.LessonType.DurationInMinutes)  ;
+    // This is where you send it back to your service:
+    await lessonService.UpdateLessonAsync(changedLesson);
+    StateHasChanged();
+    // then maybe show a notification or close dialog
+  }
+}

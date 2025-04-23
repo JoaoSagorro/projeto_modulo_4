@@ -67,6 +67,7 @@ else
                     </RadzenColumn>
                     <RadzenColumn Size="2" SizeLG="1" class="rz-p-4">
                         <RadzenButton Text="Edit" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 100%" />
+                        <EditLessonButton lessonId="lesson.LessonId" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
