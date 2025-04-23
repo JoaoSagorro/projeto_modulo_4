@@ -101,11 +101,19 @@ public class PaymentRepository : IPaymentRepository
 
     public async Task<(bool weekly, int? amount)> IsWeekly(string userId)
     {
-        var payment = await _dbContext.UserPayments.Include(p => p.PackageBought).FirstOrDefaultAsync(p => p.UserId == userId);
+        var payment = await _dbContext.UserPayments.Include(p => p.PackageBought).OrderByDescending(p => p.BuyDate).FirstOrDefaultAsync(p => p.UserId == userId);
         if (payment.PackageBought.Weekly) return (true, payment.PackageBought.ClassesIncluded);
         return (false, payment.AmountOfClasses);
     }
 
+    public async Task<string> LessonTypeBought(string userId)
+    {
+        var payment = await _dbContext.UserPayments
+                    .Include(p => p.PackageBought).ThenInclude(p => p.LessonType)
+                    .OrderByDescending(up => up.BuyDate)
+                    .FirstOrDefaultAsync(up => up.UserId == userId);
+        return payment.PackageBought.LessonType.Name ?? "erro";
+    }
     public async Task useClass(string userId)
     {
         var up = await _dbContext.UserPayments.FirstOrDefaultAsync(up => up.UserId == userId);

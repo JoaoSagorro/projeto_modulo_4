@@ -13,6 +13,7 @@ public class BookingService : IBookingService
     private readonly IUserService _userService;
     private readonly IPaymentRepository _paymentRepo;
     private readonly ILessonService _lessonService;
+    private readonly ISchoolService _schoolService;
     public BookingService(EM_DbContext _context, IUserService userService, ILessonService lessonService)
     {
         _bookingRepo = new BookingRepository(_context);
@@ -60,11 +61,11 @@ public class BookingService : IBookingService
             await CanProceed(userId, lessonId);
             //checks if it is weekly package and if can still book for the week if
             //if not weekly check if it has amount
-            var package = await CanBook(userId, lessonId);
+            // var package = await CanBook(userId, lessonId);
             var booking = new Booking { UserId = userId, LessonId = lessonId };
             booking = await _bookingRepo.CreateBookingAsync(booking);
             //if it's not a weekly package it uses in the lessons amount
-            if (!package.weekly) await _paymentRepo.useClass(userId);
+            // if (!package.weekly) await _paymentRepo.useClass(userId);
             return booking;
 
         }
@@ -132,15 +133,20 @@ public class BookingService : IBookingService
         _ = await _lessonService.GetLessonByIdAsync(lessonId) ?? throw new Exception("Lesson doesn't exist");
     }
 
-    private async Task<(bool weekly, int? amount)> CanBook(string userId, int lessonId)
+    public async Task<(bool weekly, int? amount)> CanBook(string userId, int lessonId)
     {
         var isWeekly = await _paymentRepo.IsWeekly(userId);
         if (!isWeekly.weekly && isWeekly.amount <= 0)
             throw new Exception("No more classes for this user, have to buy a new lesson package.");
-
+        var schools = await _schoolService.GetUserSchoolsAsync(userId);
         var bookedClasses = await _bookingRepo.GetBookingsByUserIdAsync(userId);
         var lessonToBook = await _lessonService.GetLessonByIdAsync(lessonId);
-
+        var bookingsByLesson = await _bookingRepo.GetBookingsByLessonId(lessonId);
+        if (bookingsByLesson.Count == lessonToBook.MaxSpots) throw new Exception("All spots filled");
+        if (!schools.Contains(lessonToBook.School)) throw new Exception("Cannot book to this school");
+        var lessonType = lessonToBook.LessonType.Name;
+        var boughtType = await _paymentRepo.LessonTypeBought(userId);
+        if (lessonType != boughtType) throw new Exception("Different type than classes bought");
         var bookedAmount = bookedClasses.Count(b => IsSameWeek(b.Lesson.BeginOfLesson, lessonToBook.BeginOfLesson));
 
         if (bookedAmount >= isWeekly.amount)

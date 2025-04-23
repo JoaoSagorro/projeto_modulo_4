@@ -12,7 +12,7 @@
         await Manager.SignOutAsync();
 
         // settimeout to redirect
-        await Task.Delay(2000);
+        await Task.Delay(10);
 
         NavigationManager.NavigateTo("/Account/Login", forceLoad: true);
     }

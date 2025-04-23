@@ -78,7 +78,9 @@ namespace RepositoryLibrary.Repository
         {
             try
             {
-                var horses = await _emContext.Horses.Where(h => h.School.SchoolId == schoolId).Include(h => h.UserHorses).Where(h => !h.UserHorses.Any()).ToListAsync();
+                var horses = await _emContext.Horses.Where(h => h.School.SchoolId == schoolId)
+                .Include(h => h.UserHorses)
+                .Where(h => !h.UserHorses.Any()).ToListAsync();
                 return horses;
             }
             catch (Exception e)
