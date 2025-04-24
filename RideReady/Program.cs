@@ -46,6 +46,8 @@ builder.Services.AddIdentityCore<EMUser>(options => options.SignIn.RequireConfir
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<EMUser>, CustomUserClaimsPrincipalFactory>();
+
 builder.Services.AddSingleton<IEmailSender<EMUser>, IdentityNoOpEmailSender>();
 
 builder.Services.AddScoped<IUserService, UserService>();

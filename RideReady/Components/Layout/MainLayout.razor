@@ -1,7 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
+
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject SignInManager<EMUser> Manager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<EMUser> UserManager
+
 
 <RadzenComponents @rendermode="InteractiveServer" />
 <div class="page">
@@ -28,7 +33,7 @@
                             <Template>
                                 <RadzenGravatar Email="info@radzen.com">
                                 </RadzenGravatar>
-                                <RadzenLabel Text="John Doe" Style="font-size: 1.2rem;" class="mx-2" />
+                                <RadzenLabel Text="@(string.IsNullOrEmpty(UserName) ? "John Doe" : UserName)" Style="font-size: 1.2rem;" class="mx-2" />
                             </Template>
                             <ChildContent>
                                 <RadzenProfileMenuItem Text="Profile" Path="/Account/Manage" Icon="account_circle" Style="font-size: 1.2rem"></RadzenProfileMenuItem>
@@ -38,19 +43,38 @@
                     </Authorized>
 
                     <NotAuthorized>
-                        <div class="border border-black d-flex align-items-center me-3">
-                            <NavLink class="nav-link" href="Account/Login">
-                                <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                            </NavLink>
+                        <div class="d-flex align-items-center me-3">
+                            <div class="collapse navbar-collapse" id="navbarNav">
+                                <ul class="navbar-nav ms-auto">
+                                    <li class="nav-item">
+                                        <NavLink class="nav-link" href="/">Home</NavLink>
+                                    </li>
+                                    <li class="nav-item">
+                                        <NavLink class="nav-link" href="/features">Features</NavLink>
+                                    </li>
+                                    <li class="nav-item">
+                                        <NavLink class="nav-link" href="/pricing">Pricing</NavLink>
+                                    </li>
+                                    <li class="nav-item">
+                                        <NavLink class="nav-link btn btn-primary text-white ms-3" href="/home">Get Started</NavLink>
+                                    </li>
+                                </ul>
+                            </div>
+                            
                             <NavLink class="nav-link" href="Account/Register">
-                                <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                Register
+                            </NavLink>
+                              
+                            
+                            <NavLink class="nav-link btn btn-primary text-white" href="Account/Login">
+                                <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
                             </NavLink>
                         </div>
                     </NotAuthorized>
                 </AuthorizeView>
             </RadzenHeader>
-
-
+@* 
+            <NavLink class="nav-link btn btn-primary text-white ms-3" href="/home">Get Started</NavLink> *@
 
             <RadzenBody>
                 <div class="rz-p-4">
@@ -73,4 +97,17 @@
 
 @code {
     bool sidebarExpanded = false;
+    private string UserName { get; set; } = "";
+    private ClaimsPrincipal user { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var firstName = user.FindFirst("FirstName")?.Value;
+        var lastName = user.FindFirst("LastName")?.Value;
+
+        UserName = $"{firstName} {lastName}".Trim();
+    }
 }
