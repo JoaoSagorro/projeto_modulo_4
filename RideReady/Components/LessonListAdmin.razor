@@ -66,7 +66,8 @@ else
                         <RadzenButton Text="Delete" Click=@(args => DeleteLesson(lesson.LessonId)) Style="width: 100%" />
                     </RadzenColumn>
                     <RadzenColumn Size="2" SizeLG="1" class="rz-p-4">
-                        <RadzenButton Text="Edit" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 100%" />
+                        @* <RadzenButton Text="Edit" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 100%" /> *@
+                        <EditLessonButton lessonId="lesson.LessonId" />
                     </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>

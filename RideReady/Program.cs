@@ -54,6 +54,7 @@ builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IHorseService, HorseService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ISchoolService, SchoolService>();
+builder.Services.AddScoped<ILessonTypeService, LessonTypeService>();
 
 builder.Services.AddRadzenComponents();
 
