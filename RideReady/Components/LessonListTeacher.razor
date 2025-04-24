@@ -17,7 +17,8 @@
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
         <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
         </RadzenStack>
-        <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" />
+        @* <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" /> *@
+        <CreateLessonBtnTeacher teacherId=@userId/>
     </RadzenStack>
 
 <RadzenDataList  AllowPaging="true" Data="@lessons" TItem="Lesson" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true">

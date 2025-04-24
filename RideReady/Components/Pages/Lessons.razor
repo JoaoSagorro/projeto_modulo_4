@@ -101,7 +101,7 @@ foreach(var lesson in lessons)
     private string userRole {get;set;}
     string? test {get; set;} = null;
     List<Claim> Claims {get;set;}
-    string? userIdTest {get; set;} = null;
+    string userId {get; set;} 
     Variant variant = Variant.Filled;
 
     protected override async Task OnInitializedAsync()
@@ -111,6 +111,7 @@ foreach(var lesson in lessons)
         var authState = await authenticationStateTask;
         var user = authState.User;
         userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+        userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
         @* lessons = await lessonService.GetAllLessonsAsync(); *@
         Claims = user.Claims.ToList();
         // order = dbContext.Orders.Include("Customer").Include("Employee").FirstOrDefault();
