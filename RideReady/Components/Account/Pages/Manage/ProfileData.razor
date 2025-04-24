@@ -11,6 +11,7 @@
 @inject IEmailSender<EMUser> EmailSender
 @inject IdentityUserAccessor UserAccessor
 @inject NavigationManager NavigationManager
+@inject SignInManager<EMUser> SignInManager
 
 <PageTitle>Manage Personal Data</PageTitle>
 
@@ -103,41 +104,6 @@
 
     private async Task OnValidSubmitAsync()
     {
-        if (Input.Address != address)
-        {
-            message = "Your address is unchanged.";
-            return;
-        }
-        if (Input.FirstName is null || Input.FirstName == firstName)
-        {
-            message = "Your name is unchanged.";
-            return;
-        }
-        if (Input.LastName is null || Input.LastName == lastName)
-        {
-            message = "Your name is unchanged.";
-            return;
-        }
-        if (Input.TaxIdentificationNumber is null || Input.TaxIdentificationNumber == taxIdNumber)
-        {
-            message = "Your tax identification number is unchanged.";
-            return;
-        }
-        if (Input.SocialHealthNumber is null || Input.SocialHealthNumber == socialHealth)
-        {
-            message = "Your social health number is unchanged.";
-            return;
-        }
-        if (Input.CitizenNumber is null || Input.CitizenNumber == citizenNumber)
-        {
-            message = "Your citizen number is unchanged.";
-            return;
-        }
-        if (Input.Birthdate == birthdate)
-        {
-            message = "Your birthdate is unchanged.";
-            return;
-        }
         var userId = await UserManager.GetUserIdAsync(user);
         user.Address = Input.Address;
         user.FirstName = Input.FirstName;
@@ -148,6 +114,7 @@
         user.Birthdate = new DateTime(Input.Birthdate.Year, Input.Birthdate.Month, Input.Birthdate.Day);
 
         await UserManager.UpdateAsync(user);
+        await SignInManager.RefreshSignInAsync(user);
     }
 
     // private async Task OnSendEmailVerificationAsync()

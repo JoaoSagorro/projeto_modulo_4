@@ -13,7 +13,7 @@
         <RadzenButton Icon="west" Variant="Variant.Text" ButtonStyle="ButtonStyle.Secondary" Click="@(() => sidebarExpanded = false)" />
     </RadzenStack>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="/" Text="Home" Icon="home" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+        <RadzenPanelMenuItem Path="/home" Text="Home" Icon="home" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
         <RadzenPanelMenuItem Path="/lessons" Text="Lessons" Icon="event" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
         <AuthorizeView>
             <Authorized>
