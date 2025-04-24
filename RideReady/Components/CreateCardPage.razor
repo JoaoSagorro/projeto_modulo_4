@@ -11,7 +11,7 @@
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
 
-@if(lesson is null)
+@if(lesson is null || lessonTypes is null || teachers is null || schools is null)
 {
     <p>Loading...</p>
 }
@@ -40,8 +40,11 @@ else{
       Change="OnTeacherSelected"
       Placeholder="Escolha o professor…"/>
     </RadzenFormField>
-    <RadzenFormField Text="RadzenDatePicker" Variant="Variant.Filled">
+    <RadzenFormField Text="Data da Aula" Variant="Variant.Filled">
         <RadzenDatePicker @bind-Value="@lesson.BeginOfLesson" ShowTime="@true" />
+    </RadzenFormField>
+      <RadzenFormField Text="Numero Maximo de Alunos" Variant="Variant.Filled">
+        <RadzenNumeric @bind-Value="MaxSpots" ShowTime="@true" />
     </RadzenFormField>
 </RadzenStack>
 <RadzenStack Orientation="Orientation.Horizontal" Style="width: 100%" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
@@ -56,25 +59,23 @@ else{
 @code {
     [Parameter] public int lessonId { get; set; }
     [Parameter] public bool ShowClose { get; set; } = true;
-    Lesson lesson {get; set;} 
+    Lesson lesson {get; set;}  = new Lesson ();
     List<School> schools {get; set;}
     string selectedTeacherId;
     int selectedSchoolId;
+    int MaxSpots;
     private IEnumerable<LessonType> lessonTypes {get; set;} 
     private IEnumerable<UpdateUserDto> teachers {get; set;} 
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        await base.OnInitializedAsync();
+        await base.OnParametersSetAsync();
 
-        lesson = await lessonService.GetLessonByIdAsync(lessonId);
+        @* lesson = await lessonService.GetLessonByIdAsync(lessonId); *@
         lessonTypes = await lessonTypeService.GetLessonTypes();
         teachers = await userService.GetUsersByRole("Teacher");
         schools = await schoolService.GetSchoolsAsync();
-        if (lesson.LessonProfs.Any())
-        {
-          selectedTeacherId = lesson.LessonProfs.ToList()[0].UserId;
-        }
+       
     }
 
   void OnTeacherSelected(object teacherId)
@@ -104,9 +105,10 @@ else{
   }
   async Task Submit(Lesson changedLesson)
   {
-    changedLesson.EndOfLesson = changedLesson.BeginOfLesson.AddMinutes(changedLesson.LessonType.DurationInMinutes)  ;
+    changedLesson.EndOfLesson = changedLesson.BeginOfLesson.AddMinutes(changedLesson.LessonType.DurationInMinutes);
+    changedLesson.MaxSpots =MaxSpots; 
     // This is where you send it back to your service:
-    await lessonService.UpdateLessonAsync(changedLesson);
+    var createdLesson = await lessonService.CreateLessonAsync(changedLesson);
     dialogService.Close();
     // then maybe show a notification or close dialog
   }

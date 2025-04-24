@@ -10,7 +10,7 @@
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
 
-@if(lesson is null)
+@if(lesson is null || lessonTypes is null || teachers is null)
 {
     <p>Loading...</p>
 }
