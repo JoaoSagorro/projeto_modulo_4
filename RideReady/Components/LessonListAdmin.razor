@@ -23,7 +23,8 @@ else
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
         <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
         </RadzenStack>
-        <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" />
+        @* <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" /> *@
+        <CreateLessonButton />
 </RadzenStack>
 
 <RadzenDataList 

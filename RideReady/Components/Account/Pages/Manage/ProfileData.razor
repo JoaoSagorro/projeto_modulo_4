@@ -103,7 +103,7 @@
 
     private async Task OnValidSubmitAsync()
     {
-        if (Input.Address != address)
+        @* if (Input.Address != address)
         {
             message = "Your address is unchanged.";
             return;
@@ -137,7 +137,7 @@
         {
             message = "Your birthdate is unchanged.";
             return;
-        }
+        } *@
         var userId = await UserManager.GetUserIdAsync(user);
         user.Address = Input.Address;
         user.FirstName = Input.FirstName;

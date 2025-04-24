@@ -1,4 +1,4 @@
-﻿@page "/editLesson/{lessonId}"
+﻿@page "/createLesson"
 @rendermode InteractiveServer
 
 @using Microsoft.EntityFrameworkCore
@@ -6,6 +6,7 @@
 @using RepositoryLibrary.Models
 @using RepositoryLibrary.Models.DTOs
 @inject ILessonService lessonService
+@inject ISchoolService schoolService
 @inject Radzen.DialogService dialogService
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
@@ -23,7 +24,12 @@ else{
     <RadzenTemplateForm Data="@lesson" Submit="@((Lesson args) => { Submit(args); })">
 <RadzenStack>
     <RadzenFormField Text="SchoolName" Variant="Variant.Filled">
-      <RadzenTextBox @bind-Value="@lesson.School.SchoolName" />
+      <RadzenDropDown Data="schools"
+      TextProperty="SchoolName"
+      ValueProperty="SchoolId"
+      Change="OnSchoolSelected" 
+      @bind-Value="selectedSchoolId"
+      Placeholder="Escolha a escola..." />
     </RadzenFormField>
     <RadzenFormField Text="Tipo de Aula" Variant="Variant.Filled">
         <RadzenDropDown  Data="lessonTypes"  TextProperty="Name"  @bind-Value="lesson.LessonType"/>
@@ -32,7 +38,7 @@ else{
         <RadzenDropDown  Data="teachers"  TextProperty="Name"  ValueProperty="Id"
       @bind-Value="selectedTeacherId"
       Change="OnTeacherSelected"
-      Placeholder="Select a teacher…"/>
+      Placeholder="Escolha o professor…"/>
     </RadzenFormField>
     <RadzenFormField Text="RadzenDatePicker" Variant="Variant.Filled">
         <RadzenDatePicker @bind-Value="@lesson.BeginOfLesson" ShowTime="@true" />
@@ -40,13 +46,10 @@ else{
 </RadzenStack>
 <RadzenStack Orientation="Orientation.Horizontal" Style="width: 100%" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
           <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large"  Text="Save" Style="margin: 0.5rem"/>
-        @* <RadzenButton ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Large" Icon="cancel" Text="Cancel"  /> *@
         <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Size="ButtonSize.Large" Style="margin: 0.5rem" />
 </RadzenStack>
 </RadzenTemplateForm>
-    @* <RadzenStack Visible="@ShowClose" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(true))" Variant="Variant.Flat" Text="Close" Style="width: 120px" />
-    </RadzenStack> *@
+
 </RadzenStack>
 }
 
@@ -54,40 +57,52 @@ else{
     [Parameter] public int lessonId { get; set; }
     [Parameter] public bool ShowClose { get; set; } = true;
     Lesson lesson {get; set;} 
+    List<School> schools {get; set;}
     string selectedTeacherId;
+    int selectedSchoolId;
     private IEnumerable<LessonType> lessonTypes {get; set;} 
     private IEnumerable<UpdateUserDto> teachers {get; set;} 
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await base.OnParametersSetAsync();
+        await base.OnInitializedAsync();
 
         lesson = await lessonService.GetLessonByIdAsync(lessonId);
         lessonTypes = await lessonTypeService.GetLessonTypes();
         teachers = await userService.GetUsersByRole("Teacher");
+        schools = await schoolService.GetSchoolsAsync();
         if (lesson.LessonProfs.Any())
+        {
+          selectedTeacherId = lesson.LessonProfs.ToList()[0].UserId;
+        }
+    }
+
+  void OnTeacherSelected(object teacherId)
     {
-      selectedTeacherId = lesson.LessonProfs.ToList()[0].UserId;
+      // Always replace the collection with a single entry:
+      lesson.LessonProfs = new List<LessonProf>
+      {
+        new LessonProf {
+          Lesson = lesson,
+          UserId = (string)teacherId
+        }
+      };
     }
-        @* order = dbContext.Orders.Where(o => o.OrderID == OrderID) *@
-                          @* .Include("Customer") *@
-                          @* .Include("Employee").FirstOrDefault(); *@
 
-        @* orderDetails = dbContext.OrderDetails.Where(o => o.OrderID == OrderID).Include("Order").ToList(); *@
-    }
-
-void OnTeacherSelected(object teacherId)
+  async Task OnSchoolSelected(object SchoolId)
   {
-    // Always replace the collection with a single entry:
-    lesson.LessonProfs = new List<LessonProf>
+    var selectedSchool = await schoolService.GetSchoolByIdAsync((int)SchoolId);
+    if (selectedSchool != null)
     {
-      new LessonProf {
-        Lesson = lesson,
-        UserId = (string)teacherId
-      }
-    };
+        lesson.School = selectedSchool;
+    }
+    else
+    {
+        // Lida com caso de escola não encontrada
+        Console.WriteLine("Escola não encontrada.");
+    }
   }
-     async Task Submit(Lesson changedLesson)
+  async Task Submit(Lesson changedLesson)
   {
     changedLesson.EndOfLesson = changedLesson.BeginOfLesson.AddMinutes(changedLesson.LessonType.DurationInMinutes)  ;
     // This is where you send it back to your service:
