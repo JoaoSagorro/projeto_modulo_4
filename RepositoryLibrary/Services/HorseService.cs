@@ -44,6 +44,18 @@ public class HorseService : IHorseService
         }
     }
 
+    public async Task<List<Horse>> GetHorsesBySchool(int schoolId)
+    {
+        try
+        {
+            return await _horseRepo.GetHorsesBySchool(schoolId);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message, e.InnerException);
+        }
+    }
+
     public async Task<List<Horse>> GetHorsesByUser(UpdateUserDto user)
     {
         try
@@ -65,7 +77,6 @@ public class HorseService : IHorseService
         {
             throw new Exception(e.Message, e.InnerException);
         }
-
     }
 
 
@@ -79,7 +90,7 @@ public class HorseService : IHorseService
         //if 3/4 bookings return false
 
         var lessons = await _lessonService.GetLessonByHorseAndDate(horse.HorseId, date);
-        // Count the bookings by type. 
+        // Count the bookings by type.
         // Using StringComparison.OrdinalIgnoreCase ensures that our comparisons ignore casing.
         int aulaCount = lessons.Count(l => l.LessonType != null &&
                                            !l.LessonType.Name.Equals("passeio", StringComparison.OrdinalIgnoreCase));
