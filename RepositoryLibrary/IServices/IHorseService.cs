@@ -7,6 +7,7 @@ namespace RepositoryLibrary.IServices;
 public interface IHorseService
 {
     Task<List<Horse>> GetHorsesAsync();
+    Task<List<Horse>> GetHorsesBySchool(int schoolId);
     Task<bool> IsAvailable(Horse horse, DateTime date, bool Aula);
     Task<List<Horse>> GetHorsesByUser(UpdateUserDto user);
     Task<Horse> AddHorse(Horse horse);
