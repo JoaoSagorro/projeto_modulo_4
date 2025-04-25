@@ -1,0 +1,90 @@
+﻿@using RepositoryLibrary.Models
+@inject RepositoryLibrary.IServices.IHorseService HorseService
+
+@code {
+    [Parameter] public EventCallback<Horse> OnHorseAdded { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public EventCallback<Horse> OnHorseUpdated { get; set; }
+    [Parameter] public Horse? HorseToEdit { get; set; }
+    [Parameter] public int SchoolId { get; set; }
+
+    private Horse newHorse = new();
+
+    protected override void OnInitialized()
+    {
+        if (HorseToEdit != null)
+        {
+            newHorse = new Horse
+                {
+                    HorseId = HorseToEdit.HorseId,
+                    Name = HorseToEdit.Name,
+                    Breed = HorseToEdit.Breed,
+                    Age = HorseToEdit.Age,
+                    School = HorseToEdit.School ?? new School { SchoolId = SchoolId }
+                };
+        }
+        else
+        {
+            newHorse = new Horse
+                {
+                    School = new School { SchoolId = SchoolId }
+                };
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            if (newHorse.HorseId == 0) // New horse
+            {
+                var result = await HorseService.AddHorse(newHorse);
+                if (result != null)
+                {
+                    await OnHorseAdded.InvokeAsync(result);
+                    newHorse = new Horse { School = new School { SchoolId = SchoolId } };
+                }
+            }
+            else // Existing horse being edited
+            {
+                var updated = await HorseService.UpdateHorse(newHorse);
+                if (updated != null)
+                {
+                    await OnHorseUpdated.InvokeAsync(updated);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Erro ao adicionar/editar cavalo: " + ex.Message);
+        }
+    }
+}
+
+<RadzenCard Style="margin-top: 20px; border-radius: 8px;">
+    <RadzenTemplateForm Data="@newHorse" TItem="Horse" Submit="@HandleSubmit">
+        <ChildContent>
+            <RadzenFieldset Text="@(HorseToEdit != null ? "Editar Cavalo" : "Adicionar Cavalo")">
+                <RadzenLabel Text="Nome" />
+                <RadzenTextBox @bind-Value="newHorse.Name" Name="Name" Style="width:100%" />
+                <RadzenRequiredValidator Text="Nome é obrigatório" Component="Name" />
+
+                <RadzenLabel Text="Raça" />
+                <RadzenTextBox @bind-Value="newHorse.Breed" Name="Breed" Style="width:100%" />
+                <RadzenRequiredValidator Text="Raça é obrigatória" Component="Breed" />
+
+                <RadzenLabel Text="Idade" />
+                <RadzenNumeric TValue="int" @bind-Value="newHorse.Age" Name="Age" Style="width:100%" />
+                <RadzenRequiredValidator Text="Idade é obrigatória" Component="Age" />
+
+                <RadzenButton Text="@(HorseToEdit != null ? "Guardar Alterações" : "Adicionar")"
+                              Icon="check"
+                              ButtonStyle="ButtonStyle.Primary"
+                              Type="Submit"
+                              Style="margin-top: 10px" />
+
+                <RadzenButton Text="Cancelar" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(async () => await OnCancel.InvokeAsync())" />
+            </RadzenFieldset>
+        </ChildContent>
+    </RadzenTemplateForm>
+</RadzenCard>
