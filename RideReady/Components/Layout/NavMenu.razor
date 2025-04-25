@@ -25,8 +25,11 @@
                 <RadzenPanelMenuItem Path="/users" Text="Users" Icon="account_box" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
             </Authorized>
         </AuthorizeView>
-        <RadzenPanelMenuItem Path="/horses" Text="Horses" Icon="motorcycle" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
-
+        <AuthorizeView>
+            <Authorized>
+                <RadzenPanelMenuItem Path="/horses" Text="Horses" Icon="motorcycle" Style="font-size: 1.2rem" Click="@(() => sidebarExpanded = !sidebarExpanded)" />
+            </Authorized>
+        </AuthorizeView>
     </RadzenPanelMenu>
 </RadzenSidebar>
 
@@ -36,6 +39,6 @@
 }
 
 @code {
-    bool sidebarExpanded = false; 
+    bool sidebarExpanded = false;
 }
 
