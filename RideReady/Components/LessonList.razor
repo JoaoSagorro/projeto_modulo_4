@@ -115,8 +115,9 @@ else
             await bookingService.CanBook(userId, lesson.LessonId);
             bookingAvailability[lesson.LessonId] =  true;
             }
-            catch
+            catch(Exception e)
             {
+            Console.WriteLine(e);
             bookingAvailability[lesson.LessonId] =  false;
             }
              bookedSpots[lesson.LessonId] = await BookingsLesson(lesson.LessonId);

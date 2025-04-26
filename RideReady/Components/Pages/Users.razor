@@ -1,58 +1,149 @@
 ﻿@page "/users"
+@rendermode InteractiveServer
 
 @using Microsoft.EntityFrameworkCore
+@using RepositoryLibrary.IServices
+@using RepositoryLibrary.Models
 @using RepositoryLibrary.Models.DTOs
 @using RepositoryLibrary.Services
 @using System.Security.Claims
-@inject UserService _userService
-@inject SchoolService _schoolService
+@using RideReady.Components.Modals
+@using System.Text.Json
+
+@inject IUserService _userService
+@inject ISchoolService _schoolService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject DialogService dialogService
 
+<h1>@SchoolName</h1>
 
-<RadzenDataGrid AllowFiltering="true" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="5" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
-                Data="@users" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" SelectionMode="DataGridSelectionMode.Single" @bind-Value=@selectedUsers>
+<RadzenDataGrid AllowFiltering="false" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
+Data="@users" TItem="UpdateUserDto" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" 
+SelectionMode="DataGridSelectionMode.Single">
     <Columns>
-        <RadzenDataGridColumn Title="Photo" Frozen="true" Sortable="false" Filterable="false" Width="80px" TextAlign="TextAlign.Center">
-            <Template Context="data">
-                <RadzenImage Path="@data.Photo.UserPhoto.ToString()" class="rz-gravatar" AlternateText="@(data.Name + " " + data.Name)" />
+        <RadzenDataGridColumn 
+        Title="User" 
+        Frozen="true" Width="160px" >
+            <Template Context="user">
+                <RadzenImage 
+                Path="@(user.Photo is not null ? Convert.ToBase64String(user.Photo.UserPhoto) : "User_default_image/user.png")" 
+                Style="width: 32px; height: 32px;" class="rz-border-radius-4 rz-me-2" AlternateText="@($"{user.FirstName} {user.LastName}")" />
+                @($"{user.FirstName} {user.LastName}")
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Name)" Title="First Name" Frozen="true" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Email)" Title="Last Name" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Address)" Title="Job Title" Width="200px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Birthdate)" Title="Title" Width="120px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.CitizenNumber)" Title="Birth Date" FormatString="{0:d}" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.TaxIdentificationNumber)" Title="Hire Date" FormatString="{0:d}" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.SocialHealthNumber)" Title="Address" Width="200px" />
-        @* <RadzenDataGridColumn Property="@nameof(Employee.City)" Title="City" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.Region)" Title="Region" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.PostalCode)" Title="Postal Code" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.Country)" Title="Country" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.HomePhone)" Title="Home Phone" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.Extension)" Title="Extension" Width="160px" />
-        <RadzenDataGridColumn Property="@nameof(Employee.Notes)" Title="Notes" Width="300px" /> *@
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Email)" Title="Email" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Address)" Title="Address" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Birthdate)" Title="Birthdate" Width="160px">
+            <Template Context="user">
+                @(DateOnly.FromDateTime(user.Birthdate).ToString("dd, MMM, yyyy"))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Role" Width="160px" >
+            <Template Context="user">
+                @(user.Roles.First())
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="State" Width="160px" >
+            <Template Context="user">
+                <RadzenText Text="@(user.IsActive ? "Active" : "Inactive")" Style="@(IsActiveColor)">
+
+                    </RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="State" Width="160px">
+                    <Template Context="user">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => OpenRender(user))" @onclick:stopPropagation="true" />
+                    </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
 @code {
-    List<UpdateUserDto> users;
-    IList<UpdateUserDto> selectedUsers;
+    RadzenDataGrid<UpdateUserDto> usersGrid;
+
+    DataGridEditMode editMode = DataGridEditMode.Single;
+
+    List<UpdateUserDto> users = new();
+    List<UpdateUserDto> userToInsert = new List<UpdateUserDto>();
+    List<UpdateUserDto> userToUpdate = new List<UpdateUserDto>();
+    private string SchoolName { get; set; }
+    private string IsActiveColor { get; set; }
+
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal? claimsPrincipal = authenticationState.User;
 
-        var auth = AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var authState = await auth;
-        var user = authState.User;
-        var userId = user.Claims.FirstOrDefault(cl => cl.Type == ClaimTypes.NameIdentifier).Value;
-
-        var userSchool = await _schoolService.GetUserSchoolsAsync(userId);
-
-        var schoolId = userSchool.First().SchoolId;
-
+        int schoolId = Convert.ToInt32(claimsPrincipal.FindFirst("SchoolId")?.Value);
+        School school = await _schoolService.GetSchoolByIdAsync(schoolId);
+        SchoolName = school.SchoolName;
         users = await _userService.GetAllUsers(schoolId);
+    }
 
-        selectedUsers = new List<UpdateUserDto>() { users.FirstOrDefault() };
+    void CellRender(DataGridCellRenderEventArgs<UpdateUserDto> args) 
+    {
+        if(args.Column.Property == "IsActive") 
+        {
+            // args.Data.IsActive == true ? IsActiveColor = "font-weight: bold; color: green" : "font-weight: bold; color: red";
+        }
+    }
+
+    public async Task OpenRender(UpdateUserDto user)
+    {
+        await LoadStateAsync();
+
+        await dialogService.OpenAsync<UserModal>($"{user.FirstName} {user.LastName}",
+               new Dictionary<string, object>() { { "User", user } },
+               new DialogOptions()
+                   {
+                       Resizable = false,
+                       Draggable = false
+                   });
+
+        await SaveStateAsync();
+    }
+
+    private async Task LoadStateAsync()
+    {
+        await Task.CompletedTask;
+
+        // var result = await JSRuntime.InvokeAsync<string>("window.localStorage.getItem", "DialogSettings");
+        // if (!string.IsNullOrEmpty(result))
+        // {
+        //     _settings = JsonSerializer.Deserialize<DialogSettings>(result);
+        // }
+    }
+
+    private async Task SaveStateAsync()
+    {
+        await Task.CompletedTask;
+
+        // await JSRuntime.InvokeVoidAsync("window.localStorage.setItem", "DialogSettings", JsonSerializer.Serialize<DialogSettings>(Settings));
+    }
+
+    public class DialogSettings
+    {
+        public string Left { get; set; }
+        public string Top { get; set; }
+        public string Width { get; set; }
+        public string Height { get; set; }
+    }
+
+    DialogSettings _settings;
+    public DialogSettings Settings
+    {
+        get
+        {
+            return _settings;
+        }
+        set
+        {
+            if (_settings != value)
+            {
+                _settings = value;
+                InvokeAsync(SaveStateAsync);
+            }
+        }
     }
 }

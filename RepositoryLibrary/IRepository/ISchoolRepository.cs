@@ -1,4 +1,5 @@
 ﻿using RepositoryLibrary.Models;
+using RepositoryLibrary.Models.DTOs;
 
 namespace RepositoryLibrary.IRepository
 {
@@ -15,5 +16,6 @@ namespace RepositoryLibrary.IRepository
         public Task<School> DeleteSchoolAsync(School school);
         public Task<List<School>> GetUserSchoolsAsync(string userId);
         public Task<List<School>> GetSchoolsAsync();
+
     }
 }
