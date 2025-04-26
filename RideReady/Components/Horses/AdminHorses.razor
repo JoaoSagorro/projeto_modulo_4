@@ -1,5 +1,11 @@
 ﻿@using System.Globalization
+@using RepositoryLibrary.Models
+@rendermode InteractiveServer
+
 @inject RepositoryLibrary.IServices.IHorseService HorseService
+@inject Radzen.DialogService DialogService
+@inject AuthenticationStateProvider AuthStateProvider
+
 
 @code {
 
@@ -7,6 +13,7 @@
     {
         try
         {
+
             var allHorses = await HorseService.GetHorsesAsync();
             TotalHorses = allHorses.Count;
 
@@ -23,11 +30,6 @@
                     Age = h.Age,
                 }).ToList();
 
-                    //TODO: Method to display if the horse belongs to the school, else show Owner name
-
-                    // UserHorses = h.UserHorses.Any(uh => uh.Relationship == "Owner")
-                    //     ? "Proprietário"  // or use user ID or name if you want
-                    //     : "Escola"
         }
         catch (Exception ex)
         {
@@ -41,6 +43,13 @@
 
     private int TotalUserHorses;
 
+    private bool showAddHorseForm = false;
+
+    private Horse? selectedHorse = null;
+
+    private List<HorsesData> horses = new();
+
+
     public class HorsesData
     {
         public int HorseId { get; set; }
@@ -50,40 +59,97 @@
         public string UserHorses { get; set; }
     }
 
-    void AddNewHorse()
+    async Task ToggleAddHorseForm()
     {
-        // Example: navigate to new horse form
-        Console.WriteLine("Add new horse clicked");
-        // NavigationManager.NavigateTo("/add-horse");
+        showAddHorseForm = !showAddHorseForm;
     }
 
-    void EditHorse(HorsesData horse)
+    private async Task HandleHorseAdded(Horse horse)
     {
-        // You can open a dialog, navigate to another page, or set a state
-        Console.WriteLine($"Edit horse: {horse.Name}");
-        // Example: NavigationManager.NavigateTo($"/edit-horse/{horse.HorseId}");
+        var horseData = new HorsesData
+            {
+                HorseId = horse.HorseId,
+                Name = horse.Name,
+                Breed = horse.Breed,
+                Age = horse.Age,
+            };
+
+        horses.Add(horseData);
+        TotalHorses++;
+        if (horse.School?.SchoolId == schoolId)
+            TotalSchoolHorses++;
+        else
+            TotalUserHorses++;
+
+        showAddHorseForm = true;
     }
 
-    void DeleteHorse(HorsesData horse)
+    private Task HideAddHorseForm()
     {
-        // Confirm before deleting
-        var confirmed = true; // You can add RadzenDialog confirmation here
-        if (confirmed)
+        showAddHorseForm = false;
+        return Task.CompletedTask;
+    }
+
+    void EditHorse(HorsesData horseData)
+    {
+        selectedHorse = new Horse
+            {
+                HorseId = horseData.HorseId,
+                Name = horseData.Name,
+                Breed = horseData.Breed,
+                Age = horseData.Age,
+                School = new School { SchoolId = schoolId }
+            };
+        showAddHorseForm = true;
+    }
+
+    private async Task HandleHorseUpdated(Horse updated)
+    {
+        var dto = horses.FirstOrDefault(h => h.HorseId == updated.HorseId);
+        if (dto != null)
         {
-            horses.Remove(horse);
+            dto.Name = updated.Name;
+            dto.Breed = updated.Breed;
+            dto.Age = updated.Age;
+        }
+
+        selectedHorse = null;
+        showAddHorseForm = false;
+    }
+
+    async Task DeleteHorse(HorsesData horsesData)
+    {
+        bool? confirmed = await DialogService.Confirm(
+          $"Quer eliminar o cavalo “{horsesData.Name}”?", "Confirmar",
+          new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }
+        );
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await HorseService.RemoveHorse(new Horse { HorseId = horsesData.HorseId });
+
+                horses.Remove(horsesData);
+                TotalHorses--;
+                if (horsesData.UserHorses == "Escola") TotalSchoolHorses--;
+                else TotalUserHorses--;
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro a eliminar: {ex.Message}");
+            }
         }
     }
 
+
     // Mock user data
-    private string adminName = "Joana Silva";
-
     private int schoolId = 1;
-
-    private List<HorsesData> horses = new();
 
 }
 
-<h2 class="text-3xl font-bold mb-2">Bem-vinda, @adminName</h2>
 <br />
 <h3 class="text-3xl font-bold mb-2">Gestão de Cavalos</h3>
 <p class="text-muted mb-6">Cadastre, edite e remova os cavalos da escola e de proprietários.</p>
@@ -121,8 +187,24 @@
 <div class="grid grid-cols-2 mt-8 mb-4 items-center">
     <h3 class="text-xl font-semibold">Lista de Cavalos</h3>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End">
-        <RadzenButton Text="Novo Cavalo" Icon="add_circle" ButtonStyle="ButtonStyle.Primary" Click="@AddNewHorse" />
+        <RadzenButton Text="@((showAddHorseForm ? "Fechar Formulário" : "Novo Cavalo"))"
+                      Icon="add_circle"
+                      ButtonStyle="ButtonStyle.Primary"
+                      Click="@ToggleAddHorseForm" />
     </RadzenStack>
+
+    @if (showAddHorseForm)
+    {
+        <AddHorseForm SchoolId="@schoolId"
+                      OnHorseAdded="HandleHorseAdded"
+                      OnHorseUpdated="HandleHorseUpdated"
+                      OnCancel="HideAddHorseForm"
+                      HorseToEdit="selectedHorse" />
+
+
+    }
+
+
 </div>
 
 <RadzenDataGrid Data="@horses" TItem="HorsesData" Style="border-radius: 8px;" Class="w-100">
