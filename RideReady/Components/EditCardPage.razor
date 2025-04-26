@@ -9,6 +9,7 @@
 @inject Radzen.DialogService dialogService
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
+@inject NavigationManager NavigationManager
 
 @if(lesson is null || lessonTypes is null || teachers is null)
 {
@@ -93,6 +94,7 @@ void OnTeacherSelected(object teacherId)
     // This is where you send it back to your service:
     await lessonService.UpdateLessonAsync(changedLesson);
     dialogService.Close();
+    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     // then maybe show a notification or close dialog
   }
 }
