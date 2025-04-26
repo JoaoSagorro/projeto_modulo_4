@@ -31,8 +31,7 @@
                     <Authorized>
                         <RadzenProfileMenu class="me-3">
                             <Template>
-                                <RadzenGravatar Email="info@radzen.com">
-                                </RadzenGravatar>
+                                <RadzenImage Path="User_default_image/user.png" Style="width: 2.5rem;" AlternateText="community" />
                                 <RadzenLabel Text="@(string.IsNullOrEmpty(UserName) ? "John Doe" : UserName)" Style="font-size: 1.2rem;" class="mx-2" />
                             </Template>
                             <ChildContent>
@@ -44,28 +43,10 @@
 
                     <NotAuthorized>
                         <div class="d-flex align-items-center me-3">
-                            <div class="collapse navbar-collapse" id="navbarNav">
-                                <ul class="navbar-nav ms-auto">
-                                    <li class="nav-item">
-                                        <NavLink class="nav-link" href="/">Home</NavLink>
-                                    </li>
-                                    <li class="nav-item">
-                                        <NavLink class="nav-link" href="/features">Features</NavLink>
-                                    </li>
-                                    <li class="nav-item">
-                                        <NavLink class="nav-link" href="/pricing">Pricing</NavLink>
-                                    </li>
-                                    <li class="nav-item">
-                                        <NavLink class="nav-link btn btn-primary text-white ms-3" href="/home">Get Started</NavLink>
-                                    </li>
-                                </ul>
-                            </div>
-                            
                             <NavLink class="nav-link" href="Account/Register">
                                 Register
                             </NavLink>
-                              
-                            
+
                             <NavLink class="nav-link btn btn-primary text-white" href="Account/Login">
                                 <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
                             </NavLink>
@@ -73,8 +54,6 @@
                     </NotAuthorized>
                 </AuthorizeView>
             </RadzenHeader>
-@* 
-            <NavLink class="nav-link btn btn-primary text-white ms-3" href="/home">Get Started</NavLink> *@
 
             <RadzenBody>
                 <div class="rz-p-4">
