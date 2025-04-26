@@ -99,6 +99,7 @@ else
     List<Claim> Claims {get;set;}
     Variant variant = Variant.Filled;
     private string userId {get; set;}
+    private School userSchool {get; set;}
     private Dictionary<int, bool> bookingAvailability = new();
     private Dictionary<int, int> bookedSpots = new();
     protected override async Task OnInitializedAsync(){
@@ -107,12 +108,14 @@ else
         var authState = await authenticationStateTask;
         var user = authState.User;
         userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        var schoolIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SchoolId")?.Value;
         lessons = await lessonService.GetAllLessonsAsync();
         foreach(var lesson in lessons)
         {
             try
             {
             await bookingService.CanBook(userId, lesson.LessonId);
+            if(lesson.School.SchoolId.ToString() != schoolIdClaim) throw new Exception("Wrong School");
             bookingAvailability[lesson.LessonId] =  true;
             }
             catch(Exception e)

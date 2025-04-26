@@ -78,13 +78,6 @@ public class SchoolService : ISchoolService
 
     public async Task<List<School>> GetUserSchoolsAsync(string userId)
     {
-        try
-        {
-            return await _schoolRepo.GetUserSchoolsAsync(userId);
-        }
-        catch (Exception e)
-        {
-            throw new Exception(e.Message, e.InnerException);
-        }
+        return await _schoolRepo.GetUserSchoolsAsync(userId);
     }
 }
