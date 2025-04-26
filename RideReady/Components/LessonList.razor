@@ -9,17 +9,23 @@
 @using RepositoryLibrary.IServices
 @using RepositoryLibrary.Models
 @using System.Security.Claims
+@inject NavigationManager NavigationManager
 
 @if(lessons is null){
-    <p>teste</p>
+    <p>Loading...</p>
 }
 else
 {
 <div class="border border-1">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
-        <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
-    </RadzenStack>
+        <RadzenDatePicker 
+            @bind-Value="value" 
+            TValue="DateOnly?" 
+            ShowCalendarWeek
+            Change="@(() => OnDateChanged(value))" />
+        <RadzenButton Text="All" Click="RefreshPage" />
+        </RadzenStack>
 
 <RadzenDataList 
                      AllowPaging="true"
@@ -93,12 +99,13 @@ else
 @code {
 
     [Parameter]
-    public IEnumerable<Lesson> lessons {get; set;}  = [];
-    public DateOnly value {get; set;}
+    public List<Lesson> lessons {get; set;}  = [];
+    public DateOnly? value {get; set;}
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     List<Claim> Claims {get;set;}
     Variant variant = Variant.Filled;
     private string userId {get; set;}
+    private School userSchool {get; set;}
     private Dictionary<int, bool> bookingAvailability = new();
     private Dictionary<int, int> bookedSpots = new();
     protected override async Task OnInitializedAsync(){
@@ -107,12 +114,15 @@ else
         var authState = await authenticationStateTask;
         var user = authState.User;
         userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        lessons = await lessonService.GetAllLessonsAsync();
+        var schoolIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SchoolId")?.Value;
+        var all = await lessonService.GetAllLessonsAsync();
+        lessons = all.ToList();
         foreach(var lesson in lessons)
         {
             try
             {
             await bookingService.CanBook(userId, lesson.LessonId);
+            if(lesson.School.SchoolId.ToString() != schoolIdClaim) throw new Exception("Wrong School");
             bookingAvailability[lesson.LessonId] =  true;
             }
             catch(Exception e)
@@ -167,6 +177,27 @@ else
     {
         _ = await bookingService.CanBook(userId,lessonId);
         return true;
+    }
+
+    async Task OnDateChanged(DateOnly? newDate)
+    {
+      value = newDate;
+      // re-fetch all lessons (or keep a cached copy) then apply filter:
+      var all = await lessonService.GetAllLessonsAsync();
+      lessons = value.HasValue 
+                   ? all.Where(l => DateOnly.FromDateTime(l.BeginOfLesson) == value).ToList() 
+                   : all.ToList();
+
+      // rebuild your bookedSpots dict if you need to:
+      bookedSpots.Clear();
+      foreach (var lesson in lessons)
+          bookedSpots[lesson.LessonId] = await BookingsLesson(lesson.LessonId);
+
+      StateHasChanged();
+    }
+  private void RefreshPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 }
 

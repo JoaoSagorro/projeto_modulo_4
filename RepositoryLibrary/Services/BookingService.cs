@@ -138,12 +138,12 @@ public class BookingService : IBookingService
         var isWeekly = await _paymentRepo.IsWeekly(userId);
         if (!isWeekly.weekly && isWeekly.amount <= 0)
             throw new Exception("No more classes for this user, have to buy a new lesson package.");
-        var schools = await _schoolService.GetUserSchoolsAsync(userId);
         var bookedClasses = await _bookingRepo.GetBookingsByUserIdAsync(userId);
         var lessonToBook = await _lessonService.GetLessonByIdAsync(lessonId);
         var bookingsByLesson = await _bookingRepo.GetBookingsByLessonId(lessonId);
+        // var schools = await _schoolService.GetUserSchoolsAsync(userId);
         if (bookingsByLesson.Count == lessonToBook.MaxSpots) throw new Exception("All spots filled");
-        if (!schools.Contains(lessonToBook.School)) throw new Exception("Cannot book to this school");
+        // if (!schools.Contains(lessonToBook.School)) throw new Exception("Cannot book to this school");
         var lessonType = lessonToBook.LessonType.Name;
         var boughtType = await _paymentRepo.LessonTypeBought(userId);
         if (lessonType != boughtType) throw new Exception("Different type than classes bought");

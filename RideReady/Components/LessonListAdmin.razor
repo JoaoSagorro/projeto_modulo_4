@@ -21,7 +21,12 @@ else
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0.5rem" class="rz-p-12">
         <RadzenLabel Text="Select Date" Component="RadzenDatePickerBindValue" />
-        <RadzenDatePicker @bind-Value=@value Name="RadzenDatePickerBindValue" ShowCalendarWeek />
+        <RadzenDatePicker 
+            @bind-Value="value" 
+            TValue="DateOnly?" 
+            ShowCalendarWeek
+            Change="@(() => OnDateChanged(value))" />
+        <RadzenButton Text="All" Click="RefreshPage" />
         </RadzenStack>
         @* <RadzenButton Text="Create" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 25%" /> *@
         <CreateLessonButton />
@@ -70,6 +75,9 @@ else
                         @* <RadzenButton Text="Edit" Click="@(() => NavigationManager.NavigateTo($"/dashboard"))" Style="width: 100%" /> *@
                         <EditLessonButton lessonId="lesson.LessonId" />
                     </RadzenColumn>
+                    <RadzenColumn Size="2" SizeLG="1" class="rz-p-4">
+                        <ChangePresenceBtn  lessonId="@lesson.LessonId"/>
+                    </RadzenColumn>
                 </RadzenRow>
             </RadzenCard>
         </Template>
@@ -92,8 +100,8 @@ else
 
 @code {
 
-    public IEnumerable<Lesson> lessons {get; set;} = [];
-    public DateOnly value {get; set;}
+    public List<Lesson> lessons {get; set;} = [];
+    public DateOnly? value {get; set;}
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     private string userRole {get;set;}
     string? test {get; set;} = null;
@@ -108,12 +116,13 @@ else
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        lessons = await lessonService.GetAllLessonsAsync();
+        var all = await lessonService.GetAllLessonsAsync();
+        lessons = all.ToList();
         foreach(var lesson in lessons)
         {
             bookedSpots[lesson.LessonId] = await BookingsLesson(lesson.LessonId);
         }
-
+        StateHasChanged();
     }
 
     private async Task<int> BookingsLesson(int lessonId)
@@ -127,5 +136,28 @@ else
         @* var userId = httpContext.User.Claims.FirstOrDefault(u=> u.Type == ClaimTypes.NameIdentifier).Value; *@
         await lessonService.DeleteLessonAsync(LessonId);
         StateHasChanged();
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+
+    async Task OnDateChanged(DateOnly? newDate)
+  {
+      value = newDate;
+      // re-fetch all lessons (or keep a cached copy) then apply filter:
+      var all = await lessonService.GetAllLessonsAsync();
+      lessons = value.HasValue 
+                   ? all.Where(l => DateOnly.FromDateTime(l.BeginOfLesson) == value).ToList() 
+                   : all.ToList();
+
+      // rebuild your bookedSpots dict if you need to:
+      bookedSpots.Clear();
+      foreach (var lesson in lessons)
+          bookedSpots[lesson.LessonId] = await BookingsLesson(lesson.LessonId);
+
+      StateHasChanged();
+  }
+
+   private void RefreshPage()
+    {
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 }

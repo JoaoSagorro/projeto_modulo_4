@@ -5,10 +5,14 @@
 @using RepositoryLibrary.IServices
 @using RepositoryLibrary.Models
 @using RepositoryLibrary.Models.DTOs
+@using RepositoryLibrary.Services
+@inject IBookingService bookingService
 @inject ILessonService lessonService
 @inject Radzen.DialogService dialogService
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
+@inject NavigationManager NavigationManager
+
 
 
 @if(lesson is null )
@@ -16,22 +20,14 @@
     <p>Loading...</p>
 }
 else{
-<RadzenStack Gap="1rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+<RadzenStack  Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
 <RadzenStack>
     @if(bookings.Any()){
         foreach(Booking booking in bookings){
-            <p>@UserNames[booking.UserId] - @booking.WasPresent  - <RadzenButton Text="Test" /></p>
+            <p>@UserNames[booking.UserId] - @booking.WasPresent  - <RadzenButton Click=@(args => ChangePresence(booking.UserId)) Text="Marcar Presença" /></p>
         }
     }
-    <RadzenFormField Text="SchoolName" Variant="Variant.Filled">
-      <RadzenTextBox @bind-Value="@lesson.School.SchoolName" />
-    </RadzenFormField>
-    <RadzenFormField Text="Tipo de Aula" Variant="Variant.Filled">
-        <RadzenDropDown  Data="lessonTypes"  TextProperty="Name"  @bind-Value="lesson.LessonType"/>
-    </RadzenFormField>
-    <RadzenFormField Text="RadzenDatePicker" Variant="Variant.Filled">
-        <RadzenDatePicker @bind-Value="@lesson.BeginOfLesson" ShowTime="@true" />
-    </RadzenFormField>
+
 </RadzenStack>
 <RadzenStack Orientation="Orientation.Horizontal" Style="width: 100%" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End">
           <RadzenButton ButtonType="ButtonType.Submit" Size="ButtonSize.Large"  Text="Save" Style="margin: 0.5rem"/>
@@ -53,6 +49,7 @@ else{
 
     protected override async Task OnParametersSetAsync()
     {
+        UserNames = new Dictionary<string, string>();
         await base.OnParametersSetAsync();
         var test = (int)LessonId;
         lesson = await lessonService.GetLessonByIdAsync(LessonId);
@@ -72,6 +69,10 @@ else{
         @* orderDetails = dbContext.OrderDetails.Where(o => o.OrderID == OrderID).Include("Order").ToList(); *@
     }
 
-
+    private async Task ChangePresence(string userId)
+    {
+        await bookingService.ChangeBookingPresenceAsync(userId, LessonId);
+        @* NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true); *@
+    }
 
 }
