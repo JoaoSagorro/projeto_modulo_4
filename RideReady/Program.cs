@@ -91,6 +91,7 @@ using (var scope = app.Services.CreateScope())
     await RoleSeed.SeedRolesAsync(services);
     await UserSeed.UserSeedWithRole(services);
     await SchoolSeed.SeedSchoolAsync(services);
+    await SchoolSeed.SeedSchoolUserAsync(services);
     await LessonTypeSeed.SeedLessonTypeAsync(services);
     await LessonSeed.SeedLessons(services);
     await HorseSeed.SeedHorses(services);
