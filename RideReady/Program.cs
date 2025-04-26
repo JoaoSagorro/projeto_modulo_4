@@ -95,6 +95,8 @@ using (var scope = app.Services.CreateScope())
     await LessonTypeSeed.SeedLessonTypeAsync(services);
     await LessonSeed.SeedLessons(services);
     await HorseSeed.SeedHorses(services);
+    await PackageSeed.SeedPackages(services);
+    await PaymentSeed.SeedPayments(services);
 }
 
 app.Run();
