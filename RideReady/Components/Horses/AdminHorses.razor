@@ -1,13 +1,45 @@
 ﻿@using System.Globalization
+@inject RepositoryLibrary.IServices.IHorseService HorseService
 
 @code {
-    // Mock user data
-    private string adminName = "Joana Silva";
 
-    private int TotalHorses => horses.Count;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var allHorses = await HorseService.GetHorsesAsync();
+            TotalHorses = allHorses.Count;
 
-    private int SchoolHorses => horses.Count(h => h.UserHorses.StartsWith("Escola", StringComparison.OrdinalIgnoreCase));
-    private int UserHorses => horses.Count(h => !h.UserHorses.StartsWith("Escola", StringComparison.OrdinalIgnoreCase));
+            var schoolHorses = await HorseService.GetHorsesBySchool(schoolId);
+            TotalSchoolHorses = schoolHorses.Count;
+
+            TotalUserHorses = TotalHorses - TotalSchoolHorses;
+
+            horses = allHorses.Select(h => new HorsesData
+                {
+                    HorseId = h.HorseId,
+                    Name = h.Name,
+                    Breed = h.Breed,
+                    Age = h.Age,
+                }).ToList();
+
+                    //TODO: Method to display if the horse belongs to the school, else show Owner name
+
+                    // UserHorses = h.UserHorses.Any(uh => uh.Relationship == "Owner")
+                    //     ? "Proprietário"  // or use user ID or name if you want
+                    //     : "Escola"
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error fetching horses: " + ex.Message);
+        }
+    }
+
+    private int TotalHorses;
+
+    private int TotalSchoolHorses;
+
+    private int TotalUserHorses;
 
     public class HorsesData
     {
@@ -17,14 +49,6 @@
         public int Age { get; set; }
         public string UserHorses { get; set; }
     }
-
-    private List<HorsesData> horses = new()
-{
-    new HorsesData { HorseId = 1, Name = "Spirit", Breed = "Breed1", Age = 8, UserHorses = "Escola1" },
-    new HorsesData { HorseId = 2, Name = "Luna", Breed = "Breed2", Age = 10, UserHorses = "Carlos Mendes" },
-    new HorsesData { HorseId = 3, Name = "Tormenta", Breed = "Breed3", Age = 6, UserHorses = "Escola1" },
-    new HorsesData { HorseId = 4, Name = "Bento", Breed = "Breed4", Age = 9, UserHorses = "Pedro Rocha" },
-};
 
     void AddNewHorse()
     {
@@ -50,6 +74,13 @@
         }
     }
 
+    // Mock user data
+    private string adminName = "Joana Silva";
+
+    private int schoolId = 1;
+
+    private List<HorsesData> horses = new();
+
 }
 
 <h2 class="text-3xl font-bold mb-2">Bem-vinda, @adminName</h2>
@@ -72,7 +103,7 @@
         <RadzenCard Style="border-radius: 8px; width: 100%; height: 100%;">
             <RadzenStack Gap="0.5rem" class="rz-p-4">
                 <RadzenText Text="Cavalos da Escola" TextStyle="TextStyle.H6" />
-                <RadzenText Text="@SchoolHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
+                <RadzenText Text="@TotalSchoolHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
@@ -81,7 +112,7 @@
         <RadzenCard Style="border-radius: 8px; width: 100%; height: 100%;">
             <RadzenStack Gap="0.5rem" class="rz-p-4">
                 <RadzenText Text="Cavalos de Proprietário" TextStyle="TextStyle.H6" />
-                <RadzenText Text="@UserHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
+                <RadzenText Text="@TotalUserHorses.ToString()" TextStyle="TextStyle.H4" Style="font-weight: bold;" />
             </RadzenStack>
         </RadzenCard>
     </RadzenColumn>
