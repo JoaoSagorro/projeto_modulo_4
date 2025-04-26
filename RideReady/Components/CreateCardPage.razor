@@ -10,6 +10,7 @@
 @inject Radzen.DialogService dialogService
 @inject ILessonTypeService lessonTypeService
 @inject IUserService userService
+@inject NavigationManager NavigationManager
 
 @if(lesson is null || lessonTypes is null || teachers is null || schools is null)
 {
@@ -110,6 +111,7 @@ else{
     // This is where you send it back to your service:
     var createdLesson = await lessonService.CreateLessonAsync(changedLesson);
     dialogService.Close();
+    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     // then maybe show a notification or close dialog
   }
 }

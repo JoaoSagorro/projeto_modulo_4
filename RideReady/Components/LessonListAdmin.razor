@@ -130,5 +130,6 @@ else
         @* var userId = httpContext.User.Claims.FirstOrDefault(u=> u.Type == ClaimTypes.NameIdentifier).Value; *@
         await lessonService.DeleteLessonAsync(LessonId);
         StateHasChanged();
+        NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
     }
 }
