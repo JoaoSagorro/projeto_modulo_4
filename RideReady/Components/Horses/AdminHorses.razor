@@ -1,8 +1,10 @@
 ﻿@using System.Globalization
 @using RepositoryLibrary.Models
 @rendermode InteractiveServer
+
 @inject RepositoryLibrary.IServices.IHorseService HorseService
-@inject IJSRuntime JS
+@inject Radzen.DialogService DialogService
+@inject AuthenticationStateProvider AuthStateProvider
 
 
 @code {
@@ -28,11 +30,6 @@
                     Age = h.Age,
                 }).ToList();
 
-            //TODO: Method to display if the horse belongs to the school, else show Owner name
-
-            // UserHorses = h.UserHorses.Any(uh => uh.Relationship == "Owner")
-            //     ? "Proprietário"  // or use user ID or name if you want
-            //     : "Escola"
         }
         catch (Exception ex)
         {
@@ -75,7 +72,6 @@
                 Name = horse.Name,
                 Breed = horse.Breed,
                 Age = horse.Age,
-                UserHorses = horse.School?.SchoolId == schoolId ? "Escola" : "Proprietário"
             };
 
         horses.Add(horseData);
@@ -94,8 +90,6 @@
         return Task.CompletedTask;
     }
 
-
-
     void EditHorse(HorsesData horseData)
     {
         selectedHorse = new Horse
@@ -103,48 +97,58 @@
                 HorseId = horseData.HorseId,
                 Name = horseData.Name,
                 Breed = horseData.Breed,
-                Age = horseData.Age
-                // You can load more fields if necessary
+                Age = horseData.Age,
+                School = new School { SchoolId = schoolId }
             };
-
         showAddHorseForm = true;
     }
 
-    private async Task HandleHorseUpdated(Horse updatedHorse)
+    private async Task HandleHorseUpdated(Horse updated)
     {
-        var existing = horses.FirstOrDefault(h => h.HorseId == updatedHorse.HorseId);
-        if (existing != null)
+        var dto = horses.FirstOrDefault(h => h.HorseId == updated.HorseId);
+        if (dto != null)
         {
-            existing.Name = updatedHorse.Name;
-            existing.Breed = updatedHorse.Breed;
-            existing.Age = updatedHorse.Age;
-            // refresh grid if needed
+            dto.Name = updated.Name;
+            dto.Breed = updated.Breed;
+            dto.Age = updated.Age;
         }
 
         selectedHorse = null;
         showAddHorseForm = false;
     }
 
-    void DeleteHorse(HorsesData horse)
+    async Task DeleteHorse(HorsesData horsesData)
     {
-        // Confirm before deleting
-        var confirmed = true; // You can add RadzenDialog confirmation here
-        if (confirmed)
+        bool? confirmed = await DialogService.Confirm(
+          $"Quer eliminar o cavalo “{horsesData.Name}”?", "Confirmar",
+          new ConfirmOptions { OkButtonText = "Sim", CancelButtonText = "Não" }
+        );
+
+        if (confirmed == true)
         {
-            horses.Remove(horse);
+            try
+            {
+                await HorseService.RemoveHorse(new Horse { HorseId = horsesData.HorseId });
+
+                horses.Remove(horsesData);
+                TotalHorses--;
+                if (horsesData.UserHorses == "Escola") TotalSchoolHorses--;
+                else TotalUserHorses--;
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro a eliminar: {ex.Message}");
+            }
         }
     }
 
-    // Mock user data
-    private string adminName = "Joana Silva";
 
+    // Mock user data
     private int schoolId = 1;
 
-
-
 }
-
-<h2 class="text-3xl font-bold mb-2">Bem-vinda, @adminName</h2>
 
 <br />
 <h3 class="text-3xl font-bold mb-2">Gestão de Cavalos</h3>
@@ -191,11 +195,12 @@
 
     @if (showAddHorseForm)
     {
-        <AddHorseForm OnHorseAdded="HandleHorseAdded"
+        <AddHorseForm SchoolId="@schoolId"
+                      OnHorseAdded="HandleHorseAdded"
                       OnHorseUpdated="HandleHorseUpdated"
                       OnCancel="HideAddHorseForm"
-                      HorseToEdit="selectedHorse"
-                      SchoolId="@schoolId" />
+                      HorseToEdit="selectedHorse" />
+
 
     }
 

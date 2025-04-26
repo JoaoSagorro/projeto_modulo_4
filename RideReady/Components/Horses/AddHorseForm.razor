@@ -1,62 +1,64 @@
 ﻿@using RepositoryLibrary.Models
+@using Microsoft.AspNetCore.Components.Authorization
 @inject RepositoryLibrary.IServices.IHorseService HorseService
+@inject AuthenticationStateProvider AuthStateProvider
 
 @code {
-    [Parameter] public EventCallback<Horse> OnHorseAdded { get; set; }
-    [Parameter] public EventCallback OnCancel { get; set; }
-    [Parameter] public EventCallback<Horse> OnHorseUpdated { get; set; }
-    [Parameter] public Horse? HorseToEdit { get; set; }
     [Parameter] public int SchoolId { get; set; }
+    [Parameter] public Horse? HorseToEdit { get; set; }
+    [Parameter] public EventCallback<Horse> OnHorseAdded { get; set; }
+    [Parameter] public EventCallback<Horse> OnHorseUpdated { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
 
     private Horse newHorse = new();
+    private bool isEdit => HorseToEdit?.HorseId > 0;
 
-    protected override void OnInitialized()
-    {
-        if (HorseToEdit != null)
+    @code {
+        protected override async Task OnParametersSetAsync()
         {
-            newHorse = new Horse
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var claimValue = user.FindFirst("SchoolId")?.Value
+                          ?? user.FindFirst("schoolId")?.Value;
+            if (int.TryParse(claimValue, out var sid))
+                SchoolId = sid;
+
+            if (HorseToEdit != null)
+            {
+                newHorse = new Horse
                 {
                     HorseId = HorseToEdit.HorseId,
                     Name = HorseToEdit.Name,
                     Breed = HorseToEdit.Breed,
                     Age = HorseToEdit.Age,
-                    School = HorseToEdit.School ?? new School { SchoolId = SchoolId }
+                    School = new School { SchoolId = SchoolId }
                 };
-        }
-        else
-        {
-            newHorse = new Horse
+            }
+            else
+            {
+                newHorse = new Horse
                 {
                     School = new School { SchoolId = SchoolId }
                 };
+            }
         }
     }
 
+
     private async Task HandleSubmit()
     {
-        try
+        newHorse.School = new School { SchoolId = SchoolId };
+
+        if (newHorse.HorseId == 0)
         {
-            if (newHorse.HorseId == 0) // New horse
-            {
-                var result = await HorseService.AddHorse(newHorse);
-                if (result != null)
-                {
-                    await OnHorseAdded.InvokeAsync(result);
-                    newHorse = new Horse { School = new School { SchoolId = SchoolId } };
-                }
-            }
-            else // Existing horse being edited
-            {
-                var updated = await HorseService.UpdateHorse(newHorse);
-                if (updated != null)
-                {
-                    await OnHorseUpdated.InvokeAsync(updated);
-                }
-            }
+            var added = await HorseService.AddHorse(newHorse);
+            await OnHorseAdded.InvokeAsync(added);
+            newHorse = new Horse { School = new School { SchoolId = SchoolId } };
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine("Erro ao adicionar/editar cavalo: " + ex.Message);
+            var updated = await HorseService.UpdateHorse(newHorse);
+            await OnHorseUpdated.InvokeAsync(updated);
         }
     }
 }
@@ -64,26 +66,30 @@
 <RadzenCard Style="margin-top: 20px; border-radius: 8px;">
     <RadzenTemplateForm Data="@newHorse" TItem="Horse" Submit="@HandleSubmit">
         <ChildContent>
-            <RadzenFieldset Text="@(HorseToEdit != null ? "Editar Cavalo" : "Adicionar Cavalo")">
+            <RadzenFieldset Text="@(isEdit ? "Editar Cavalo" : "Adicionar Cavalo")">
                 <RadzenLabel Text="Nome" />
                 <RadzenTextBox @bind-Value="newHorse.Name" Name="Name" Style="width:100%" />
-                <RadzenRequiredValidator Text="Nome é obrigatório" Component="Name" />
+                <RadzenRequiredValidator Component="Name" Text="Nome é obrigatório" />
 
                 <RadzenLabel Text="Raça" />
                 <RadzenTextBox @bind-Value="newHorse.Breed" Name="Breed" Style="width:100%" />
-                <RadzenRequiredValidator Text="Raça é obrigatória" Component="Breed" />
+                <RadzenRequiredValidator Component="Breed" Text="Raça é obrigatória" />
 
                 <RadzenLabel Text="Idade" />
                 <RadzenNumeric TValue="int" @bind-Value="newHorse.Age" Name="Age" Style="width:100%" />
-                <RadzenRequiredValidator Text="Idade é obrigatória" Component="Age" />
+                <RadzenRequiredValidator Component="Age" Text="Idade é obrigatória" />
 
-                <RadzenButton Text="@(HorseToEdit != null ? "Guardar Alterações" : "Adicionar")"
-                              Icon="check"
-                              ButtonStyle="ButtonStyle.Primary"
-                              Type="Submit"
-                              Style="margin-top: 10px" />
-
-                <RadzenButton Text="Cancelar" Icon="cancel" ButtonStyle="ButtonStyle.Light" Click="@(async () => await OnCancel.InvokeAsync())" />
+                <div class="mt-4">
+                    <RadzenButton Text="@(isEdit ? "Guardar Alterações" : "Adicionar")"
+                                  Icon="check"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  Type="Submit" />
+                    <RadzenButton Text="Cancelar"
+                                  Icon="cancel"
+                                  ButtonStyle="ButtonStyle.Light"
+                                  Click="@(async () => await OnCancel.InvokeAsync())"
+                                  Style="margin-left: 1rem;" />
+                </div>
             </RadzenFieldset>
         </ChildContent>
     </RadzenTemplateForm>
