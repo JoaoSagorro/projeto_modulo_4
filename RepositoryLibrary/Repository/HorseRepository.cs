@@ -15,17 +15,24 @@ namespace RepositoryLibrary.Repository
 
         public async Task<Horse> CreateHorse(Horse horse)
         {
-            try
+            var existingSchool = await _emContext.Schools
+                .FindAsync(horse.School.SchoolId);
+
+            if (existingSchool == null)
             {
-                await _emContext.Horses.AddAsync(horse);
-                await _emContext.SaveChangesAsync();
-                return horse;
+                throw new InvalidOperationException(
+                    $"Cannot create horse: School with ID {horse.School.SchoolId} not found.");
             }
-            catch (Exception e)
-            {
-                throw new Exception(e.Message, e.InnerException);
-            }
+
+            _emContext.Entry(existingSchool)
+                      .State = EntityState.Unchanged;
+            horse.School = existingSchool;
+
+            await _emContext.Horses.AddAsync(horse);
+            await _emContext.SaveChangesAsync();
+            return horse;
         }
+
 
         public async Task<Horse> DeleteHorseById(int horseId)
         {
@@ -44,22 +51,33 @@ namespace RepositoryLibrary.Repository
 
         public async Task<Horse> EditHorse(Horse horse)
         {
-            if (await _emContext.Horses.AnyAsync(h => h.HorseId == horse.HorseId))
+            try
             {
-                try
-                {
-                    _emContext.Horses.Update(horse);
-                    await _emContext.SaveChangesAsync();
-                    return horse;
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(e.Message, e.InnerException);
-                }
-            }
-            else { throw new Exception("Horse doesn't exists can't update it"); }
+                var existing = await _emContext.Horses
+                    .Include(h => h.School)
+                    .SingleOrDefaultAsync(h => h.HorseId == horse.HorseId);
 
+                if (existing == null)
+                    throw new InvalidOperationException($"Horse {horse.HorseId} not found.");
+
+                existing.Name = horse.Name;
+                existing.Breed = horse.Breed;
+                existing.Age = horse.Age;
+
+                var school = await _emContext.Schools.FindAsync(horse.School.SchoolId)
+                            ?? throw new InvalidOperationException($"School {horse.School.SchoolId} not found.");
+                existing.School = school;
+
+                await _emContext.SaveChangesAsync();
+                return existing;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
+
+
 
         public async Task<List<Horse>> GetAllHorses()
         {
