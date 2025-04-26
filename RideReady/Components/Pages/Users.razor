@@ -8,6 +8,7 @@
 @using RepositoryLibrary.Services
 @using System.Security.Claims
 @using RideReady.Components.Modals
+@using System.Text.Json
 
 @inject IUserService _userService
 @inject ISchoolService _schoolService
@@ -18,40 +19,42 @@
 
 <RadzenDataGrid AllowFiltering="false" AllowColumnResize="true" AllowAlternatingRows="false" FilterMode="FilterMode.Advanced" AllowSorting="true" PageSize="10" AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Left" ShowPagingSummary="true"
 Data="@users" TItem="UpdateUserDto" ColumnWidth="300px" LogicalFilterOperator="LogicalFilterOperator.Or" 
-SelectionMode="DataGridSelectionMode.Single" CellRender="@CellRender">
+SelectionMode="DataGridSelectionMode.Single">
     <Columns>
-            <RadzenDataGridColumn 
-            Title="User" 
-            Frozen="true" Width="160px" >
-                <Template Context="user">
-                    <RadzenImage 
-                    Path="@(user.Photo is not null ? Convert.ToBase64String(user.Photo.UserPhoto) : "User_default_image/user.png")" 
-                    Style="width: 32px; height: 32px;" class="rz-border-radius-4 rz-me-2" AlternateText="@($"{user.FirstName} {user.LastName}")" />
-                    @($"{user.FirstName} {user.LastName}")
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Email)" Title="Email" Width="160px" />
-            <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Address)" Title="Address" Width="160px" />
-            <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Birthdate)" Title="Birthdate" Width="160px">
-                <Template Context="user">
-                    @(DateOnly.FromDateTime(user.Birthdate).ToString("dd, MMM, yyyy"))
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Role" Width="160px" >
-                <Template Context="user">
-                    @(user.Roles.First())
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="State" Width="160px" >
-                <Template Context="user">
-                    @(user.IsActive ? "Active" : "Inactive")
+        <RadzenDataGridColumn 
+        Title="User" 
+        Frozen="true" Width="160px" >
+            <Template Context="user">
+                <RadzenImage 
+                Path="@(user.Photo is not null ? Convert.ToBase64String(user.Photo.UserPhoto) : "User_default_image/user.png")" 
+                Style="width: 32px; height: 32px;" class="rz-border-radius-4 rz-me-2" AlternateText="@($"{user.FirstName} {user.LastName}")" />
+                @($"{user.FirstName} {user.LastName}")
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Email)" Title="Email" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Address)" Title="Address" Width="160px" />
+        <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Birthdate)" Title="Birthdate" Width="160px">
+            <Template Context="user">
+                @(DateOnly.FromDateTime(user.Birthdate).ToString("dd, MMM, yyyy"))
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Role" Width="160px" >
+            <Template Context="user">
+                @(user.Roles.First())
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="State" Width="160px" >
+            <Template Context="user">
+                <RadzenText Text="@(user.IsActive ? "Active" : "Inactive")" Style="@(IsActiveColor)">
+
+                    </RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="State" Width="160px">
-                <Template Context="user">
-                    <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => OpenRender(user))" @onclick:stopPropagation="true" />
-                </Template>
-            </RadzenDataGridColumn>
+                    <Template Context="user">
+                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => OpenRender(user))" @onclick:stopPropagation="true" />
+                    </Template>
+        </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
 
@@ -64,6 +67,7 @@ SelectionMode="DataGridSelectionMode.Single" CellRender="@CellRender">
     List<UpdateUserDto> userToInsert = new List<UpdateUserDto>();
     List<UpdateUserDto> userToUpdate = new List<UpdateUserDto>();
     private string SchoolName { get; set; }
+    private string IsActiveColor { get; set; }
 
 
     protected override async Task OnInitializedAsync()
@@ -81,11 +85,11 @@ SelectionMode="DataGridSelectionMode.Single" CellRender="@CellRender">
     {
         if(args.Column.Property == "IsActive") 
         {
-            args.Attributes.Add("class", args.Data.IsActive ? "text-success" : "text-danger");
+            // args.Data.IsActive == true ? IsActiveColor = "font-weight: bold; color: green" : "font-weight: bold; color: red";
         }
     }
 
-    public async Task OpenOrder(UpdateUserDto user)
+    public async Task OpenRender(UpdateUserDto user)
     {
         await LoadStateAsync();
 
@@ -93,14 +97,8 @@ SelectionMode="DataGridSelectionMode.Single" CellRender="@CellRender">
                new Dictionary<string, object>() { { "User", user } },
                new DialogOptions()
                    {
-                       Resizable = true,
-                       Draggable = true,
-                       Resize = OnResize, 
-                       Drag = OnDrag,
-                       Width = Settings != null ? Settings.Width : "700px",
-                       Height = Settings != null ? Settings.Height : "512px",
-                       Left = Settings != null ? Settings.Left : null,
-                       Top = Settings != null ? Settings.Top : null
+                       Resizable = false,
+                       Draggable = false
                    });
 
         await SaveStateAsync();
@@ -110,48 +108,18 @@ SelectionMode="DataGridSelectionMode.Single" CellRender="@CellRender">
     {
         await Task.CompletedTask;
 
-        var result = await JSRuntime.InvokeAsync<string>("window.localStorage.getItem", "DialogSettings");
-        if (!string.IsNullOrEmpty(result))
-        {
-            _settings = JsonSerializer.Deserialize<DialogSettings>(result);
-        }
-    }
-
-    void OnDrag(System.Drawing.Point point)
-    {
-        JSRuntime.InvokeVoidAsync("eval", $"console.log('Dialog drag. Left:{point.X}, Top:{point.Y}')");
-
-        if (Settings == null)
-        {
-            Settings = new DialogSettings();
-        }
-
-        Settings.Left = $"{point.X}px";
-        Settings.Top = $"{point.Y}px";
-
-        InvokeAsync(SaveStateAsync);
-    }
-
-    void OnResize(System.Drawing.Size size)
-    {
-        JSRuntime.InvokeVoidAsync("eval", $"console.log('Dialog resize. Width:{size.Width}, Height:{size.Height}')");
-
-        if (Settings == null)
-        {
-            Settings = new DialogSettings();
-        }
-
-        Settings.Width = $"{size.Width}px";
-        Settings.Height = $"{size.Height}px";
-
-        InvokeAsync(SaveStateAsync);
+        // var result = await JSRuntime.InvokeAsync<string>("window.localStorage.getItem", "DialogSettings");
+        // if (!string.IsNullOrEmpty(result))
+        // {
+        //     _settings = JsonSerializer.Deserialize<DialogSettings>(result);
+        // }
     }
 
     private async Task SaveStateAsync()
     {
         await Task.CompletedTask;
 
-        await JSRuntime.InvokeVoidAsync("window.localStorage.setItem", "DialogSettings", JsonSerializer.Serialize<DialogSettings>(Settings));
+        // await JSRuntime.InvokeVoidAsync("window.localStorage.setItem", "DialogSettings", JsonSerializer.Serialize<DialogSettings>(Settings));
     }
 
     public class DialogSettings
