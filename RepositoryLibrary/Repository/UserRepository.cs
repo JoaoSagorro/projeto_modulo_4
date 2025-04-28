@@ -289,6 +289,13 @@ namespace RepositoryLibrary.Repository
                     Photo = photoToUpdate
                 };
 
+                var result = await _userManager.UpdateAsync(userToUpdate);
+
+                if (!result.Succeeded)
+                {
+                    throw new Exception($"There was an error while updating {userToUpdate.FirstName} {userToUpdate.LastName}");
+                }
+
                 return updatedUser;
             }
             catch (Exception e)

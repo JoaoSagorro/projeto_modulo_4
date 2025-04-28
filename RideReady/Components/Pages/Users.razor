@@ -35,6 +35,11 @@ SelectionMode="DataGridSelectionMode.Single">
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Email)" Title="Email" Width="160px" />
         <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Address)" Title="Address" Width="160px" />
+        <RadzenDataGridColumn Title="Phone Number" Width="160px">
+            <Template Context="user">
+                @(string.IsNullOrEmpty(user.PhoneNumber) ? "-" : user.PhoneNumber)
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn Property="@nameof(UpdateUserDto.Birthdate)" Title="Birthdate" Width="160px">
             <Template Context="user">
                 @(DateOnly.FromDateTime(user.Birthdate).ToString("dd, MMM, yyyy"))
@@ -47,15 +52,13 @@ SelectionMode="DataGridSelectionMode.Single">
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="State" Width="160px" >
             <Template Context="user">
-                <RadzenText Text="@(user.IsActive ? "Active" : "Inactive")" Style="@(IsActiveColor)">
-
-                    </RadzenText>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="State" Width="160px">
-                    <Template Context="user">
-                        <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => OpenRender(user))" @onclick:stopPropagation="true" />
-                    </Template>
+                <RadzenText Text="@(user.IsActive ? "Active" : "Inactive")" Style="@CellRender(user.IsActive)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="State" Width="160px">
+            <Template Context="user">
+                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Size="ButtonSize.Medium" class="rz-my-1 rz-ms-1" Click="@(args => OpenRender(user))" @onclick:stopPropagation="true" />
+            </Template>
         </RadzenDataGridColumn>
     </Columns>
 </RadzenDataGrid>
@@ -83,12 +86,9 @@ SelectionMode="DataGridSelectionMode.Single">
         users = await _userService.GetAllUsers(schoolId);
     }
 
-    void CellRender(DataGridCellRenderEventArgs<UpdateUserDto> args) 
+    private string CellRender(bool isActive) 
     {
-        if(args.Column.Property == "IsActive") 
-        {
-            // args.Data.IsActive == true ? IsActiveColor = "font-weight: bold; color: green" : "font-weight: bold; color: red";
-        }
+        return isActive ? "font-weight: bold; color: green" : "font-weight: bold; color: red";
     }
 
     public async Task OpenRender(UpdateUserDto user)
