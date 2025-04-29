@@ -67,11 +67,8 @@ else
                     <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
                         <RadzenButton Text="Cancel" Click=@(args => CancelLesson(userId, lesson.LessonId)) Style="width: 100%" />
                     </RadzenColumn>
-                    <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
-                        <RadzenButton Text="Booked" Style="width: 100%" Disabled=true />
-                    </RadzenColumn>
                 }
-                @if (bookingAvailability.ContainsKey(lesson.LessonId) && bookingAvailability[lesson.LessonId])
+                else if (bookingAvailability.ContainsKey(lesson.LessonId) && bookingAvailability[lesson.LessonId])
                 {
                     <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
                         <RadzenButton Text="Book" Click=@(args => BookLesson(lesson.LessonId)) Style="width: 100%" />
@@ -180,6 +177,7 @@ else
         if(userId is not null)
         await bookingService.CreateBookingAsync(userId, LessonId);
         StateHasChanged();
+        RefreshPage();
         
     }
 
@@ -212,6 +210,7 @@ else
     private async Task CancelLesson(string userId, int lessonId)
     {
         await bookingService.CancelBookingAsync(userId, lessonId);
+        RefreshPage();
     }
 }
 
