@@ -13,6 +13,19 @@ public class SchoolService : ISchoolService
     {
         _schoolRepo = new SchoolRepository(context);
     }
+
+    public async Task CreateUserSchoolAsync(string userId, int schoolId)
+    {
+        try
+        {
+            await _schoolRepo.CreateUserSchoolAsync(userId, schoolId);
+        }
+        catch (Exception e)
+        {
+            throw new Exception(e.Message, e.InnerException);
+        }
+    }
+
     public async Task<School> DeleteSchoolByIdAsync(int schoolId)
     {
         try
@@ -65,13 +78,6 @@ public class SchoolService : ISchoolService
 
     public async Task<List<School>> GetUserSchoolsAsync(string userId)
     {
-        try
-        {
-            return await _schoolRepo.GetUserSchoolsAsync(userId);
-        }
-        catch (Exception e)
-        {
-            throw new Exception(e.Message, e.InnerException);
-        }
+        return await _schoolRepo.GetUserSchoolsAsync(userId);
     }
 }

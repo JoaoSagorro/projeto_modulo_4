@@ -1,6 +1,6 @@
 
 using Microsoft.IdentityModel.Tokens;
-﻿using RepositoryLibrary.IRepository;
+using RepositoryLibrary.IRepository;
 using RepositoryLibrary.Models;
 using RepositoryLibrary.Models.Context;
 using Microsoft.EntityFrameworkCore;
@@ -16,12 +16,45 @@ namespace RepositoryLibrary.Repository
             _emContext = context;
         }
 
+        public async Task CreateUserSchoolAsync(string userId, int schoolId)
+        {
+            try
+            {
+                var school = await GetSchoolAsync(schoolId);
+
+                if (school is null)
+                {
+                    throw new Exception("Couldn't find the specified school.");
+                }
+
+                //verification to delete, because one user can be in many schools
+                var exists = _emContext.SchoolUsers.Any(sc => sc.UserId == userId);
+                if (exists)
+                {
+                    throw new Exception("The user already exists.");
+                }
+
+                SchoolUser schoolUser = new SchoolUser
+                {
+                    UserId = userId,
+                    SchoolId = schoolId
+                };
+
+                await _emContext.SchoolUsers.AddAsync(schoolUser);
+                await _emContext.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e.InnerException);
+            }
+        }
+
         public async Task<Logo> AddSchoolLogoAsync(int schoolId, string logoName, string filepath)
         {
             try
             {
                 Logo? logo = await _emContext.Logos.FirstOrDefaultAsync(lg => lg.SchoolId == schoolId && lg.LogoName == logoName);
-                School? school = await _emContext.Schools.FirstOrDefaultAsync(scl => scl.SchoolId == schoolId); 
+                School? school = await _emContext.Schools.FirstOrDefaultAsync(scl => scl.SchoolId == schoolId);
 
                 if (logo is not null)
                 {
@@ -162,7 +195,7 @@ namespace RepositoryLibrary.Repository
             {
                 throw new Exception(e.Message, e.InnerException);
             }
-        }    
+        }
 
         public async Task<List<School>> GetSchoolsAsync()
         {
@@ -194,17 +227,29 @@ namespace RepositoryLibrary.Repository
             {
                 throw new Exception(e.Message, e.InnerException);
             }
-        }    
+        }
 
         public async Task<List<School>> GetUserSchoolsAsync(string userId)
         {
+            if (userId == null)
+                throw new ArgumentNullException(nameof(userId), "userId was null");
+            if (_emContext == null)
+                throw new InvalidOperationException("_emContext is not initialized");
+            if (_emContext.SchoolUsers == null)
+                throw new InvalidOperationException("DbSet<SchoolUser> SchoolUsers is missing on the context");
+
             try
             {
-                return await _emContext.SchoolUsers.Where(su => su.UserId == userId).Include(su => su.School).Select(su => su.School).ToListAsync();
+                return await _emContext.SchoolUsers
+                    .Where(su => su.UserId == userId)
+                    .Include(su => su.School)
+                    .Select(su => su.School)
+                    .ToListAsync();
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message, e.InnerException);
+                // Log e (including stack trace) before wrapping
+                throw new Exception("Failed loading user schools", e);
             }
         }
     }

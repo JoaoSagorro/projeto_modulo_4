@@ -10,9 +10,9 @@ namespace RepositoryLibrary.Services
     public class LessonService : ILessonService
     {
         private readonly LessonRepository _lessonRepository;
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public LessonService(EM_DbContext context, UserService userService)
+        public LessonService(EM_DbContext context, IUserService userService)
         {
             _lessonRepository = new LessonRepository(context);
             _userService = userService;

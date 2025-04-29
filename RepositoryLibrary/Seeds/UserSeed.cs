@@ -23,7 +23,7 @@ namespace EquestrianManagement.Seeds
                 {
                     FirstName = "Super",
                     LastName = "Admin",
-                    UserName = "SuperAdmin",
+                    UserName = "admin@admin.pt",
                     Email = "admin@admin.pt",
                     EmailConfirmed = true,
                     Address = "Rua dos Admins",
@@ -41,7 +41,7 @@ namespace EquestrianManagement.Seeds
 
                 var adminResult = await _userManager.CreateAsync(superAdmin, "@SuperAdmin1");
 
-                if(!adminResult.Succeeded)
+                if (!adminResult.Succeeded)
                 {
                     throw new Exception($"There was an error creating {superAdmin.UserName}.");
                 }
@@ -52,7 +52,7 @@ namespace EquestrianManagement.Seeds
                 {
                     FirstName = "João",
                     LastName = "Silva",
-                    UserName = "joaosilva",
+                    UserName = "joao.silva@email.pt",
                     Email = "joao.silva@email.pt",
                     EmailConfirmed = true,
                     Address = "Rua das Flores, nº10",
@@ -81,7 +81,7 @@ namespace EquestrianManagement.Seeds
                 {
                     FirstName = "Maria",
                     LastName = "Ferreira",
-                    UserName = "mariaferreira",
+                    UserName = "maria.ferreira@email.pt",
                     Email = "maria.ferreira@email.pt",
                     EmailConfirmed = true,
                     Address = "Avenida da Liberdade, nº55",
@@ -110,7 +110,7 @@ namespace EquestrianManagement.Seeds
                 {
                     FirstName = "Carlos",
                     LastName = "Santos",
-                    UserName = "carlossantos",
+                    UserName = "carlos.santos@email.pt",
                     Email = "carlos.santos@email.pt",
                     EmailConfirmed = true,
                     Address = "Travessa do Carmo, nº3",
@@ -139,7 +139,7 @@ namespace EquestrianManagement.Seeds
                 {
                     FirstName = "Ana",
                     LastName = "Costa",
-                    UserName = "anacosta",
+                    UserName = "ana.costa@email.pt",
                     Email = "ana.costa@email.pt",
                     EmailConfirmed = true,
                     Address = "Rua da Esperança, nº69",
@@ -214,19 +214,19 @@ namespace EquestrianManagement.Seeds
                     foreach (EMUser user in users)
                     {
                         var result = false;
-                        if (user.UserName == "SuperAdmin")
+                        if (user.UserName == "admin@admin.pt")
                         {
                             var adminResult = await _userManager.AddToRoleAsync(user, StaticRole.Admin);
                             result = adminResult.Succeeded;
                         }
 
-                        if (user.UserName == "joaosilva")
+                        if (user.UserName == "joao.silva@email.pt")
                         {
                             var teacherResult = await _userManager.AddToRoleAsync(user, StaticRole.Teacher);
                             result = teacherResult.Succeeded;
                         }
 
-                        if (user.UserName != "joaosilva" && user.UserName != "SuperAdmin")
+                        if (user.UserName != "joao.silva@email.pt" && user.UserName != "admin@admin.pt")
                         {
                             var studentResult = await _userManager.AddToRoleAsync(user, StaticRole.Student);
                             result = studentResult.Succeeded;

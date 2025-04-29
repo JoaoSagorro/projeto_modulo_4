@@ -1,9 +1,11 @@
 ﻿using RepositoryLibrary.Models;
+using RepositoryLibrary.Models.DTOs;
 
 namespace RepositoryLibrary.IRepository
 {
     public interface ISchoolRepository
     {
+        public Task CreateUserSchoolAsync(string userId, int schoolId);
         public Task<Logo> AddSchoolLogoAsync(int schoolId, string logoName, string filepath);
         public Task<Logo> UpdateSchoolLogoAsync(Logo logoToChange, string filepath);
         public Task<Logo> DeleteSchoolLogoAsync(int schoolId, string logoName);
@@ -14,5 +16,6 @@ namespace RepositoryLibrary.IRepository
         public Task<School> DeleteSchoolAsync(School school);
         public Task<List<School>> GetUserSchoolsAsync(string userId);
         public Task<List<School>> GetSchoolsAsync();
+
     }
 }

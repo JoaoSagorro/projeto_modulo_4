@@ -1,23 +1,38 @@
 ﻿@page "/dashboard"
 @using RideReady.Components.Dashboard
-@using SharedLibrary.Models.Static_Class
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@inject AuthenticationStateProvider AuthStateProvider
+@using Microsoft.IdentityModel.Tokens
+@using System.Security.Claims
+@attribute [Authorize]
 
-<PageTitle>Dashboard</PageTitle>
+@code
+{
+    private string userRole { get; set; }
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    List<Claim> Claims { get; set; }
 
-@* Simulate a logged-in user role (for now, hardcoded) *@
-@code {
-    private string currentUserRole = StaticRole.Teacher; // Change for testing: Admin / Teacher / Student
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        authenticationStateTask = AuthStateProvider.GetAuthenticationStateAsync();
+        var authState = await authenticationStateTask;
+        var user = authState.User;
+        userRole = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role).Value;
+        Claims = user.Claims.ToList();
+    }
 }
 
-@switch (currentUserRole)
+@switch (userRole)
 {
-    case StaticRole.Admin:
+    case "Administrator":
         <AdminDashboard />
         break;
-    case StaticRole.Teacher:
+    case "Teacher":
         <TeacherDashboard />
         break;
-    case StaticRole.Student:
+    case "Student":
         <StudentDashboard />
         break;
     default:
