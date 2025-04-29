@@ -63,7 +63,12 @@ else
                             </RadzenColumn>
                         </RadzenRow>
                     </RadzenColumn>
-                @if (bookingAvailability.ContainsKey(lesson.LessonId) && bookingAvailability[lesson.LessonId])
+                @if(bookings.Any(b => b.UserId == userId && b.LessonId == lesson.LessonId)){
+                    <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
+                        <RadzenButton Text="Cancel" Click=@(args => CancelLesson(userId, lesson.LessonId)) Style="width: 100%" />
+                    </RadzenColumn>
+                }
+                else if (bookingAvailability.ContainsKey(lesson.LessonId) && bookingAvailability[lesson.LessonId])
                 {
                     <RadzenColumn Size="2" SizeLG="2" class="rz-p-4">
                         <RadzenButton Text="Book" Click=@(args => BookLesson(lesson.LessonId)) Style="width: 100%" />
@@ -108,6 +113,8 @@ else
     private School userSchool {get; set;}
     private Dictionary<int, bool> bookingAvailability = new();
     private Dictionary<int, int> bookedSpots = new();
+    private List<Booking> bookings = [];
+
     protected override async Task OnInitializedAsync(){
         authenticationStateTask = AuthStateProvider.GetAuthenticationStateAsync();
         await base.OnInitializedAsync();
@@ -117,6 +124,7 @@ else
         var schoolIdClaim = user.Claims.FirstOrDefault(c => c.Type == "SchoolId")?.Value;
         var all = await lessonService.GetAllLessonsAsync();
         lessons = all.ToList();
+        bookings = await bookingService.GetBookingsByUserIdAsync(userId);
         foreach(var lesson in lessons)
         {
             try
@@ -166,10 +174,10 @@ else
         var authState = await authenticationStateTask;
         var user = authState.User;
         userId = user.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
-
         if(userId is not null)
         await bookingService.CreateBookingAsync(userId, LessonId);
         StateHasChanged();
+        RefreshPage();
         
     }
 
@@ -198,6 +206,11 @@ else
   private void RefreshPage()
     {
         NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+    }
+    private async Task CancelLesson(string userId, int lessonId)
+    {
+        await bookingService.CancelBookingAsync(userId, lessonId);
+        RefreshPage();
     }
 }
 
